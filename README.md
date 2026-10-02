@@ -21,6 +21,14 @@ Aprire http://127.0.0.1:4173. Dopo una modifica ai sorgenti eseguire nuovamente 
 - Rilevamento WebXR immersive-ar, posizionamento su superficie tramite hit-test; esportazione GLB e USDZ per Quick Look.
 - WebMCP: lettura dei risultati e configurazione validata della stessa interfaccia.
 
+## Studio 3D · seconda versione
+
+- Illuminazione da studio con luce principale fredda, controluce ciano e ambra, materiali metallici distinti, bordi smussati e bloom selettivo sulle parti luminose.
+- Auto X-ray procedurale con scocca e abitacolo trasparenti, ruote, cerchi, fari e contorni: commutazione tra dettaglio del propulsore e contesto del veicolo.
+- Animazione inizialmente attiva, salvo preferenza di sistema per movimento ridotto. Pausa e velocità 0,5× / 1× / 2×. Pistoni, bielle, albero, valvole e rotori in movimento; fasi del cilindro 1 indicate in tempo reale.
+- Estrazione e reinserimento indipendente dei gruppi. Modalità Sposta componenti con trascinamento su un piano parallelo alla camera, anche tramite touch; cursori X/Y/Z come alternativa accessibile. Ricomposizione di tutti i gruppi con transizione morbida.
+- Scocca e cinematica sono rappresentazioni didattiche, non CAD di un veicolo commerciale. La vista AR continua a esportare il propulsore selezionato, senza la scocca contestuale.
+
 ## Tutor AI
 
 Le schede e i quiz funzionano senza servizi esterni. La conversazione AI è implementata ma **non è attiva senza una chiave del servizio**. Non mostra risposte simulate spacciate per AI.
