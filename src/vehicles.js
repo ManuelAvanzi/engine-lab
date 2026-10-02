@@ -6,7 +6,7 @@ const loader=new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
 const cache=new Map();
 export const vehicleInfo={
  ev:{key:'tesla',name:'Tesla Model 3 · 2024',note:'Carrozzeria reale · propulsore didattico, non CAD Tesla'},
- ice:{key:'concept',name:'Car Concept · termico',note:'Carrozzeria concept dettagliata · propulsore didattico'},
+ ice:{key:'ferrari',name:'Ferrari 458 Italia',note:'Carrozzeria reale · 4 cilindri didattico, non V8 Ferrari'},
  hybrid:{key:'concept',name:'Car Concept · ibrido',note:'Carrozzeria concept dettagliata · propulsore didattico'}
 };
 
@@ -65,6 +65,41 @@ function prepareTesla(source){
  car.userData.wheels=wheels;car.position.y=-.34;return car;
 }
 
+function prepareFerrari(source){
+ source.updateMatrixWorld(true);
+ const bounds=new THREE.Box3().setFromObject(source),center=bounds.getCenter(new THREE.Vector3());
+ const scale=12/(bounds.max.z-bounds.min.z);
+ // The source faces -Z. Bake all geometry into a +Z teaching frame, so
+ // straight wheel axles are world X and share the existing rotation driver.
+ const transform=new THREE.Matrix4().makeRotationY(Math.PI).multiply(new THREE.Matrix4().makeScale(scale,scale,scale)).multiply(new THREE.Matrix4().makeTranslation(-center.x,-bounds.min.y,-center.z));
+ const car=new THREE.Group(),body=new THREE.Group(),wheels=[],pivots=new Map();car.add(body);
+ source.traverse(o=>{if(/^wheel_[fr][lr]$/.test(o.name)){
+  const wheel=new THREE.Group();wheel.name=o.name;wheel.position.copy(o.getWorldPosition(new THREE.Vector3()).applyMatrix4(transform));car.add(wheel);wheels.push(wheel);pivots.set(o,wheel);
+ }});
+ source.traverse(o=>{
+  if(!o.isMesh)return;
+  let ancestor=o.parent,wheel;while(ancestor){if(pivots.has(ancestor)){wheel=pivots.get(ancestor);break;}ancestor=ancestor.parent;}
+  if(!wheel&&/leather|interior|carpet|steering|carbon|blue|yellow_trim/i.test(o.name))return;
+  // Brake calipers remain fixed; tires and rims turn around their own centre.
+  const spinning=wheel&&!/^brake/.test(o.name),target=spinning?wheel:body;
+  const role=wheel?(/tire/i.test(o.name)?'tire':'wheel'):/glass/i.test(o.name)?'glass':'body';
+  const geometry=o.geometry.clone();
+  for(const name of ['position','normal','tangent']){
+   const attr=geometry.getAttribute(name);if(!attr)continue;
+   const values=new Float32Array(attr.count*attr.itemSize);
+   for(let i=0;i<attr.count;i++)for(let k=0;k<attr.itemSize;k++)values[i*attr.itemSize+k]=attr.getComponent(i,k);
+   geometry.setAttribute(name,new THREE.BufferAttribute(values,attr.itemSize));
+  }
+  geometry.applyMatrix4(new THREE.Matrix4().multiplyMatrices(transform,o.matrixWorld));
+  if(spinning)geometry.translate(-wheel.position.x,-wheel.position.y,-wheel.position.z);
+  geometry.computeBoundingBox();geometry.computeBoundingSphere();
+  const material=finishMaterial(o.material,role);
+  if(role==='body'){material.color.set('#bc9790');material.opacity=.18;material.userData.overviewOpacity=.18;}
+  const mesh=new THREE.Mesh(geometry,material);mesh.name=o.name;mesh.castShadow=!!wheel;target.add(mesh);
+ });
+ car.userData.wheels=wheels;car.position.y=-.34;return car;
+}
+
 function prepareConcept(source){
  source.updateMatrixWorld(true);
  const bounds=new THREE.Box3().setFromObject(source),size=bounds.getSize(new THREE.Vector3());
@@ -96,6 +131,6 @@ function prepareConcept(source){
 
 export async function loadVehicle(type){
  const key=vehicleInfo[type].key;
- if(!cache.has(key))cache.set(key,loader.loadAsync(`/models/${key}.glb`).then(({scene})=>key==='tesla'?prepareTesla(scene):prepareConcept(scene)).catch(e=>{cache.delete(key);throw e;}));
+ if(!cache.has(key))cache.set(key,loader.loadAsync(`/models/${key}.glb`).then(({scene})=>key==='tesla'?prepareTesla(scene):key==='ferrari'?prepareFerrari(scene):prepareConcept(scene)).catch(e=>{cache.delete(key);throw e;}));
  return cache.get(key);
 }

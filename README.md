@@ -44,7 +44,7 @@ Il limite in memoria per IP è una mitigazione leggera, non un limite globale di
 
 ## Limiti didattici e AR
 
-Propulsori schematici originali, non CAD industriali né modelli in scala reale. Carrozzeria Tesla Model 3 (2024) per EV; Car Concept di Khronos per termico/ibrido. Crediti e licenze CC BY 4.0 in `src/models/credits.html`. I propulsori non sono ricostruzioni OEM dei veicoli. La simulazione è illustrativa e non costituisce diagnosi o calcolo di omologazione. Le ipotesi e le fonti DOE sono consultabili dall'interfaccia. Sono escluse le emissioni del ciclo di vita e le perdite di ricarica. Le temperature di refrigerante e avvolgimenti rappresentano grandezze diverse.
+Propulsori schematici originali, non CAD industriali né modelli in scala reale. Carrozzeria Tesla Model 3 (2024) per EV; Ferrari 458 Italia per il termico; Car Concept di Khronos per il sistema ibrido. Crediti e licenze CC BY 4.0 in `src/models/credits.html`. I propulsori non sono ricostruzioni OEM dei veicoli. La simulazione è illustrativa e non costituisce diagnosi o calcolo di omologazione. Le ipotesi e le fonti DOE sono consultabili dall'interfaccia. Sono escluse le emissioni del ciclo di vita e le perdite di ricarica. Le temperature di refrigerante e avvolgimenti rappresentano grandezze diverse.
 
 L'animazione riproduce il meccanismo biella-manovella, non la combustione fluidodinamica. Gli rpm modificano i valori del modello e la velocità dei movimenti, che restano rallentati per leggibilità. In vista esplosa i collegamenti sono deliberatamente separati.
 
@@ -73,3 +73,7 @@ La vista esplosa usa direzioni coerenti per gli assiemi, guide tratteggiate vers
 ## Percorsi guidati e rapporto di trasmissione
 
 I flussi sono filamenti animati con impulsi sfumati, selezionabili singolarmente. Ogni percorso spiega origine, destinazione e trasformazione. La velocità delle scie non rappresenta la velocità fisica di gas o corrente. Motore e ruote usano rpm reali del modello convertiti in radianti e rallentati insieme di 100 volte, moltiplicati per la velocità di riproduzione. Il pannello espone rpm motore / rapporto totale = rpm ruote. Rapporto fisso illustrativo, senza slittamento, cambi marcia o modello cinematico OEM dell'ibrido.
+
+## Carrozzeria a benzina
+
+Ferrari 458 Italia di vicent091036, dagli esempi ufficiali Three.js, CC BY 4.0 (crediti e fonti in src/models/credits.html). Sorgente: https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/gltf/ferrari.glb. Salvare in assets/ferrari-source.glb e rigenerare con `node scripts/prepare-vehicles.mjs ferrari`. Il decoder Draco serve soltanto durante la preparazione; il browser usa Meshopt. Ruote rettilinee con geometrie normalizzate su asse X, pinze fisse, carrozzeria X-ray. Il quattro cilindri didattico occupa il vano posteriore e trasmette coppia all'asse posteriore: non è una ricostruzione del V8 Ferrari. Tesla EV e concept ibrido invariati.

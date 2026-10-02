@@ -44,7 +44,7 @@ export class FlowAnimation{
   if(v.type!=='ice')link('torque',shaft,output,.1);
   const wheels=(v.car.userData.wheels||[]).map(w=>w.getWorldPosition(new THREE.Vector3()));
   if(v.carMode&&wheels.length===4){
-   const driven=wheels.sort((a,b)=>v.type==='ev'?a.z-b.z:b.z-a.z).slice(0,2);
+   const driven=wheels.sort((a,b)=>v.type!=='hybrid'?a.z-b.z:b.z-a.z).slice(0,2);
    const axle=driven[0].clone().lerp(driven[1],.5);link('torque',output,axle,.2);
    for(const wheel of driven)link('torque',axle,wheel,.12);
   }else link('torque',output,local(v.type==='ev'?3.6:4.4,.65,.4),.15);
