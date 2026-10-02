@@ -44,7 +44,7 @@ Il limite in memoria per IP è una mitigazione leggera, non un limite globale di
 
 ## Limiti didattici e AR
 
-Geometrie schematiche originali, non CAD industriali né modelli in scala reale. La simulazione è illustrativa e non costituisce diagnosi o calcolo di omologazione. Le ipotesi e le fonti DOE sono consultabili dall'interfaccia. Sono escluse le emissioni del ciclo di vita e le perdite di ricarica. Le temperature di refrigerante e avvolgimenti rappresentano grandezze diverse.
+Propulsori schematici originali, non CAD industriali né modelli in scala reale. Carrozzeria Tesla Model 3 (2024) per EV; Car Concept di Khronos per termico/ibrido. Crediti e licenze CC BY 4.0 in `src/models/credits.html`. I propulsori non sono ricostruzioni OEM dei veicoli. La simulazione è illustrativa e non costituisce diagnosi o calcolo di omologazione. Le ipotesi e le fonti DOE sono consultabili dall'interfaccia. Sono escluse le emissioni del ciclo di vita e le perdite di ricarica. Le temperature di refrigerante e avvolgimenti rappresentano grandezze diverse.
 
 L'animazione riproduce il meccanismo biella-manovella, non la combustione fluidodinamica. Gli rpm modificano i valori del modello; l'animazione resta rallentata per leggibilità. In vista esplosa i collegamenti sono deliberatamente separati.
 
@@ -55,3 +55,9 @@ WebXR richiede HTTPS, browser e hardware compatibili, autorizzazione e supporto 
 `npm run build` genera gli asset in `dist` e il Worker ESM in `dist/server/index.js`. Il Worker incorpora gli asset statici, quindi non richiede un binding per file esterni. Il sito privato è identificato in `.openai/hosting.json`.
 
 Fonti concettuali: [DOE — veicoli ibridi](https://afdc.energy.gov/vehicles/electric-basics-hev), [AFDC — veicoli elettrici](https://afdc.energy.gov/vehicles/electric), [OpenAI Responses API](https://developers.openai.com/api/reference/cli/resources/responses/methods/create).
+
+## Modelli carrozzeria
+
+La vista Auto X-ray è attiva di default; ruote opache e materiali satinati. I GLB ottimizzati sono inclusi nel repository (nessun servizio esterno necessario in esecuzione). I file originali scaricati in `assets/` sono ignorati da Git.
+
+Per rigenerare: scaricare `tesla-source.glb` da https://raw.githubusercontent.com/erictfree/Carbon-Footprint-AI-Visualizer/main/models/tesla-model-3-2024/source/2024_tesla_model_3.glb e `concept-source.glb` da https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/CarConcept/glTF-Binary/CarConcept.glb nella cartella `assets/`, poi eseguire `node scripts/prepare-vehicles.mjs`. Conservare attribuzioni e metadati. Compressione Meshopt e normali pneumatici conservate. Esportazioni AR/GLB/Quick Look includono il propulsore, non la carrozzeria di contesto.
