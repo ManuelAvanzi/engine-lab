@@ -61,3 +61,9 @@ Fonti concettuali: [DOE — veicoli ibridi](https://afdc.energy.gov/vehicles/ele
 La vista Auto X-ray è attiva di default; ruote opache e materiali satinati. I GLB ottimizzati sono inclusi nel repository (nessun servizio esterno necessario in esecuzione). I file originali scaricati in `assets/` sono ignorati da Git.
 
 Per rigenerare: scaricare `tesla-source.glb` da https://raw.githubusercontent.com/erictfree/Carbon-Footprint-AI-Visualizer/main/models/tesla-model-3-2024/source/2024_tesla_model_3.glb e `concept-source.glb` da https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/CarConcept/glTF-Binary/CarConcept.glb nella cartella `assets/`, poi eseguire `node scripts/prepare-vehicles.mjs`. Conservare attribuzioni e metadati. Compressione Meshopt e normali pneumatici conservate. Esportazioni AR/GLB/Quick Look includono il propulsore, non la carrozzeria di contesto.
+
+## Vista didattica e inquadrature
+
+La carrozzeria usa trasparenza graduata sui contorni e nasconde gli interni. La selezione di una parte avvicina la camera con una transizione interrompibile ruotando il modello; `Vista generale` ripristina il contesto completo. Nei dettagli le ruote vengono nascoste per non coprire il propulsore. I movimenti rispettano la preferenza di riduzione delle animazioni.
+
+La vista esplosa usa direzioni coerenti per gli assiemi, guide tratteggiate verso le sedi originali e al massimo tre etichette, con priorità alla selezione. Le annotazioni non fanno parte delle esportazioni. La scheda è richiudibile e parte chiusa su tablet; i comandi secondari sono sotto `Strumenti`.

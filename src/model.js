@@ -11,6 +11,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { components } from './data.js';
 import { createStudio, addMachining } from './studio.js';
 
+import {Presentation} from './presentation.js';
 import {loadVehicle, vehicleInfo} from './vehicles.js';
 
 const metal = (color, roughness=.58, metalness=.4) => new THREE.MeshStandardMaterial({color, roughness, metalness});
@@ -32,10 +33,10 @@ export class PowertrainViewer {
   this.raycaster=new THREE.Raycaster();this.pointer=new THREE.Vector2();this.installInteraction();
   this.composer=new EffectComposer(this.renderer);this.composer.addPass(new RenderPass(this.scene,this.camera));this.bloom=new UnrealBloomPass(new THREE.Vector2(512,512),.035,.25,2.5);this.composer.addPass(this.bloom);this.composer.addPass(new OutputPass());
   this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(host);
-  this.clock=new THREE.Clock();this.renderer.setAnimationLoop((time,frame)=>this.animate(frame));
+  this.presentation=new Presentation(this);this.clock=new THREE.Clock();this.renderer.setAnimationLoop((time,frame)=>this.animate(frame));
  }
  resize(){const {width,height}=this.host.getBoundingClientRect();if(!width||!height)return;this.camera.aspect=width/height;const fit=Math.max(1,1.15/this.camera.aspect);if(this.controls&&!this.xrSession){const delta=this.camera.position.clone().sub(this.controls.target);this.camera.position.copy(this.controls.target).add(delta.multiplyScalar(fit/(this.aspectFit||1)));}this.aspectFit=fit;this.camera.updateProjectionMatrix();this.renderer.setSize(width,height);this.composer?.setSize(width,height);}
- resetCamera(){const fit=Math.max(1,1.15/this.camera.aspect),spread=Object.values(this.parts).some(p=>p.userData.detached);this.controls.target.set(0,this.carMode?1.15:1.38+1.1*(this.targetExplosion||0)+(spread?.55:0),this.carMode?1:0);this.camera.position.set(...(this.carMode?(this.type==='ev'?[11,7.3,-14]:[11,7.3,14]):[5.7,3.1,7.4])).multiplyScalar(fit*(1+.4*(this.targetExplosion||0))*(spread?1.22:1)).add(this.controls.target);this.aspectFit=fit;this.controls.update();}
+ resetCamera(){const fit=Math.max(1,1.15/this.camera.aspect),spread=Object.values(this.parts).some(p=>p.userData.detached);const target=new THREE.Vector3(0,this.carMode?1.15:1.38+1.1*(this.targetExplosion||0)+(spread?.55:0),this.carMode?1:0);const position=new THREE.Vector3(...(this.carMode?(this.type==='ev'?[11,7.3,-14]:[11,7.3,14]):[5.7,3.1,7.4])).multiplyScalar(fit*(1+.4*(this.targetExplosion||0))*(spread?1.22:1)).add(target);this.aspectFit=fit;if(this.presentation){this.presentation.setFocused(false);this.presentation.move(position,target);}else{this.controls.target.copy(target);this.camera.position.copy(position);this.controls.update();}}
  part(id,offset=[0,0,0]){const g=new THREE.Group();g.name=components[id].name;g.userData={part:id,offset:new THREE.Vector3(...offset),manualOffset:new THREE.Vector3(),detached:false,hidden:false};this.parts[id]=g;this.root.add(g);return g;}
  mesh(g,geo,color,pos=[0,0,0],rot=[0,0,0],rough=.58){const m=new THREE.Mesh(geo,metal(color,rough));m.position.set(...pos);m.rotation.set(...rot);m.castShadow=true;m.receiveShadow=true;m.userData.part=g.userData.part;m.userData.baseColor=new THREE.Color(color);g.add(m);this.meshes.push(m);return m;}
  box(g,dim,pos,color,rough=.58){const radius=Math.min(...dim)*.15;return this.mesh(g,new RoundedBoxGeometry(...dim,2,Math.min(radius,.07)),color,pos,[0,0,0],rough);}
@@ -46,7 +47,7 @@ export class PowertrainViewer {
  clear(){this.root.traverse(o=>{o.geometry?.dispose();if(o.material)o.material.dispose();});this.root.clear();this.parts={};this.meshes=[];this.pistons=[];this.rods=[];this.rotating=[];this.valves=[];this.chambers=[];this.crankRotor=null;this.rotorGroup=null;}
  build(type){this.clear();this.type=type;this.root.position.set(0,0,0);this.root.scale.setScalar(1);this.explosion=this.targetExplosion=0;this.isolated=false;
   if(type==='ev')this.electric();else{this.engine(type==='hybrid');if(type==='hybrid')this.hybrid();}
-  this.updateVehicle(type);addMachining(this);this.selected=type==='ev'?'rotor':'pistons';this.setCar(this.carMode);this.paint();this.resize();this.resetCamera();
+  this.updateVehicle(type);addMachining(this);this.selected=type==='ev'?'rotor':'pistons';this.setCar(this.carMode);this.paint();this.presentation?.rebuild();this.resize();this.resetCamera();
  }
  engine(hybrid){
   const xs=[-1.38,-.46,.46,1.38];
@@ -122,15 +123,15 @@ export class PowertrainViewer {
   const ticket=this.vehicleTicket=(this.vehicleTicket||0)+1;const info=vehicleInfo[type];
   this.host.dataset.vehicleStatus='loading';this.host.dataset.vehicle=info.name;
   this.car.visible=false;this.updateVehicleLabel('Caricamento carrozzeria…');
-  try{const car=await loadVehicle(type);if(ticket!==this.vehicleTicket)return;this.scene.remove(this.car);this.car=car;this.scene.add(car);this.host.dataset.vehicleStatus='ready';this.setCar(this.carMode);this.updateVehicleLabel(info.name);}
+  try{const car=await loadVehicle(type);if(ticket!==this.vehicleTicket)return;this.scene.remove(this.car);this.car=car;this.scene.add(car);this.host.dataset.vehicleStatus='ready';const focused=this.presentation?.focused;this.setCar(this.carMode);if(focused)this.presentation.focus();this.updateVehicleLabel(info.name);}
   catch(error){if(ticket!==this.vehicleTicket)return;this.host.dataset.vehicleStatus='error';this.updateVehicleLabel('Carrozzeria non caricata · cambia sistema per riprovare');console.error(error);}
  }
  updateVehicleLabel(text){const label=document.getElementById('vehicle-name');if(label)label.textContent=text;const note=document.getElementById('vehicle-note');if(note)note.textContent=vehicleInfo[this.type]?.note||'';}
- select(id){this.selected=id;this.paint();}
+ select(id,focus=false){this.selected=id;this.paint();if(focus&&!this.dragMode)this.presentation?.focus();}
  setCar(value){this.carMode=value;this.car.visible=value&&!this.isolated&&!this.xrSession&&this.host.dataset.vehicleStatus==='ready';this.root.scale.setScalar(value?(this.type==='ev'?.6:.72):1);this.root.position.set(0,value?(this.type==='ev'?.08:.38):0,value?(this.type==='ev'?-3.45:3.3):0);document.querySelector('.vehicle-card')?.classList.toggle('hidden',!value);this.layoutBattery(value);this.resetCamera();}
  layoutBattery(inCar){if(this.type!=='ev'||!this.parts.battery)return;for(const mesh of this.parts.battery.children){if(!mesh.isMesh)continue;mesh.userData.restPosition??=mesh.position.clone();mesh.userData.restScale??=mesh.scale.clone();if(mesh.geometry.type==='TubeGeometry'){mesh.userData.hideInCar=true;mesh.visible=!inCar;continue;}mesh.position.copy(mesh.userData.restPosition);mesh.scale.copy(mesh.userData.restScale);if(inCar){mesh.position.set(mesh.position.x*1.5,mesh.position.y+.3,(mesh.position.z+1.95)*6.4+5.4);mesh.scale.multiply(new THREE.Vector3(1.5,1,6.4));}}}
  setDragMode(value){this.dragMode=value;this.host.style.cursor=value?'grab':'';}
- detachSelected(){const p=this.parts[this.selected];if(!p)return;p.userData.detached=!p.userData.detached;if(!p.userData.detached)p.userData.manualOffset.set(0,0,0);this.resetCamera();return p.userData.detached;}
+ detachSelected(){const p=this.parts[this.selected];if(!p)return;p.userData.detached=!p.userData.detached;if(!p.userData.detached)p.userData.manualOffset.set(0,0,0);this.presentation?.focus();return p.userData.detached;}
  resetParts(){Object.values(this.parts).forEach(p=>{p.userData.detached=false;p.userData.manualOffset.set(0,0,0);p.userData.hidden=false;});this.resetCamera();this.paint();}
  setPartOffset(axis,value){const p=this.parts[this.selected];if(p&&['x','y','z'].includes(axis)&&Number.isFinite(value))p.userData.manualOffset[axis]=THREE.MathUtils.clamp(value,-5,5);}
  installInteraction(){let down=null,drag=null;const plane=new THREE.Plane(),point=new THREE.Vector3();
@@ -140,14 +141,14 @@ export class PowertrainViewer {
   const end=e=>{if(drag){const id=drag.id;drag=null;this.controls.enabled=true;if(this.host.hasPointerCapture(e.pointerId))this.host.releasePointerCapture(e.pointerId);this.host.style.cursor=this.dragMode?'grab':'';this.onSelect(id);e.stopPropagation();return;}if(e.type==='pointerup'&&down&&Math.hypot(e.clientX-down[0],e.clientY-down[1])<6){ray(e);this.pick();}down=null;};
   this.host.addEventListener('pointerup',end,true);this.host.addEventListener('pointercancel',end,true);
  }
- setExplosion(value){const next=value/100;if(!this.xrSession){const offset=this.camera.position.clone().sub(this.controls.target);offset.multiplyScalar((1+next*.4)/(1+this.targetExplosion*.4));this.controls.target.y+=1.1*(next-this.targetExplosion);this.camera.position.copy(this.controls.target).add(offset);}this.targetExplosion=next;}
+ setExplosion(value){this.targetExplosion=value/100;if(!this.xrSession){if(value>0)this.presentation?.frameExplosion();else this.resetCamera();}}
  setSection(value){this.section=value;this.paint();}
  setRisk(value,warning=false){this.risk=value;this.warning=warning;this.paint();}
- isolate(value){this.isolated=value;this.car.visible=this.carMode&&!value;this.paint();}
+ isolate(value){this.isolated=value;this.car.visible=this.carMode&&!value&&!this.xrSession&&this.host.dataset.vehicleStatus==='ready';this.paint();if(value)this.presentation?.focus();else this.resetCamera();}
  paint(){
   Object.entries(this.parts).forEach(([id,g])=>g.visible=(!this.isolated||id===this.selected)&&!g.userData.hidden);
   const critical=this.type==='ev'?['stator','inverter','battery','bearings']:['pistons','head','rods','exhaust','motor','inverter','battery'];
-  this.meshes.forEach(m=>{const id=m.userData.part;const selected=id===this.selected;const hot=this.risk&&critical.includes(id);m.material.color.copy(m.userData.baseColor);m.material.emissive.set(m.userData.led?'#39bfdc':hot?(this.warning?'#f34c28':'#de8b39'):selected?'#0d789d':'#000000');m.material.emissiveIntensity=m.userData.led?.45:hot?.65:selected?.21:0;
+  this.meshes.forEach(m=>{const id=m.userData.part;const selected=id===this.selected;const hot=this.risk&&critical.includes(id);m.material.color.copy(m.userData.baseColor);m.material.emissive.set(m.userData.led?'#365a62':hot?(this.warning?'#f34c28':'#de8b39'):selected?'#235361':'#000000');m.material.emissiveIntensity=m.userData.led?.08:hot?.65:selected?.12:0;
    const detached=this.parts[id]?.userData.detached;const ghost=this.section&&!this.isolated&&!detached;
    const transparent=ghost&&(m.userData.shell||['cover','exhaust'].includes(id));m.material.transparent=transparent;m.material.opacity=transparent?(id==='exhaust'?.16:.075):1;m.material.depthWrite=!transparent;
    m.visible=!(ghost&&id==='stator'&&m.position.z>.15)&&!(m.userData.hideInCar&&this.carMode&&!this.xrSession);
@@ -156,8 +157,8 @@ export class PowertrainViewer {
  getHits(){return this.raycaster.intersectObjects(this.meshes).filter(h=>h.object.parent.visible&&h.object.visible&&this.parts[h.object.userData.part]?.visible&&h.object.material.opacity>.2);}
  pick(){const hits=this.getHits();if(hits[0])this.onSelect(hits[0].object.userData.part);}
  animate(frame){const dt=Math.min(this.clock.getDelta(),.05);if(this.playing)this.angle+=dt*3.1*this.playbackRate;
-  this.explosion+=(this.targetExplosion-this.explosion)*.08;
-  Object.values(this.parts).forEach(g=>{const target=(g.userData.origin||new THREE.Vector3()).clone().addScaledVector(g.userData.offset,this.explosion);if(g.userData.detached)target.addScaledVector(g.userData.offset.clone().normalize(),2.7);target.add(g.userData.manualOffset);g.position.lerp(target,1-Math.exp(-dt*12));});
+  this.explosion=this.presentation?.reduced?this.targetExplosion:this.explosion+(this.targetExplosion-this.explosion)*.08;
+  Object.values(this.parts).forEach(g=>{const target=(g.userData.origin||new THREE.Vector3()).clone().addScaledVector(g.userData.offset,this.explosion);if(g.userData.detached)target.addScaledVector(g.userData.offset.clone().normalize(),2.7);target.add(g.userData.manualOffset);g.position.lerp(target,this.presentation?.reduced?1:1-Math.exp(-dt*12));});
   this.pistons.forEach(({g,index})=>{const a=this.angle+(index===0||index===3?0:Math.PI),r=.30,l=.92;g.position.y=.43+r*Math.cos(a)+Math.sqrt(l*l-(r*Math.sin(a))**2)+.08;});
   this.rods.forEach(({g,index,x})=>{const a=this.angle+(index===0||index===3?0:Math.PI);const lower=new THREE.Vector3(x,.43+.3*Math.cos(a),.3*Math.sin(a));const upper=new THREE.Vector3(x,this.pistons[index].g.position.y-.08,0);g.position.copy(lower).add(upper).multiplyScalar(.5);g.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),upper.clone().sub(lower).normalize());});
   // Rotate crank geometry around its own shaft centre.
@@ -169,7 +170,7 @@ export class PowertrainViewer {
 
   const phaseLabel=document.getElementById('cycle-phase');if(phaseLabel){const phase=(this.angle%(Math.PI*4))/(Math.PI);const names=['Espansione','Scarico','Aspirazione','Compressione'];const text=this.type==='ev'?'Campo rotante · rotore in movimento':`${names[Math.floor(phase)]} · cilindro 1`;if(phaseLabel.textContent!==text)phaseLabel.textContent=text;phaseLabel.dataset.phase=this.angle.toFixed(2);}
   if(this.xrSession&&frame&&this.hitSource){const hits=frame.getHitTestResults(this.hitSource);this.reticle.visible=hits.length>0;if(hits.length){const pose=hits[0].getPose(this.renderer.xr.getReferenceSpace());this.reticle.matrix.fromArray(pose.transform.matrix);}}
-  if(!this.xrSession){this.controls.update();this.composer.render();}else this.renderer.render(this.scene,this.camera);
+  if(!this.xrSession){this.presentation?.update(dt);this.composer.render();}else this.renderer.render(this.scene,this.camera);
  }
  exportModel(){const clone=this.root.clone(true);clone.traverse(o=>{if(o.userData.restPosition)o.position.copy(o.userData.restPosition);if(o.userData.restScale)o.scale.copy(o.userData.restScale);if(o.userData.hideInCar)o.visible=true;});return clone;}
  async exportGLB(){const clone=this.exportModel();clone.position.set(0,0,0);clone.scale.setScalar(1);clone.updateMatrixWorld(true);return new GLTFExporter().parseAsync(clone,{binary:true,onlyVisible:true});}
@@ -177,9 +178,9 @@ export class PowertrainViewer {
  async startAR(){
   if(!navigator.xr)throw new Error('WebXR non è disponibile in questo browser.');
   const session=await navigator.xr.requestSession('immersive-ar',{requiredFeatures:['hit-test'],optionalFeatures:['local-floor','dom-overlay'],domOverlay:{root:document.body}});
-  this.xrSession=session;this.layoutBattery(false);document.body.classList.add('xr-active');this.savedBackground=this.scene.background;this.savedFog=this.scene.fog;this.scene.fog=null;this.scene.background=null;this.stage.visible=false;this.car.visible=false;this.root.visible=false;this.root.scale.setScalar(.17);
+  this.xrSession=session;this.presentation?.cancel();this.presentation.overlay.hidden=true;this.presentation.items.forEach(i=>i.line.visible=false);this.layoutBattery(false);document.body.classList.add('xr-active');this.savedBackground=this.scene.background;this.savedFog=this.scene.fog;this.scene.fog=null;this.scene.background=null;this.stage.visible=false;this.car.visible=false;this.root.visible=false;this.root.scale.setScalar(.17);
   this.reticle=new THREE.Mesh(new THREE.RingGeometry(.12,.15,32).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:'#b1d781'}));this.reticle.matrixAutoUpdate=false;this.reticle.visible=false;this.scene.add(this.reticle);
-  session.addEventListener('end',()=>{this.hitSource?.cancel();this.hitSource=null;this.xrSession=null;document.body.classList.remove('xr-active');this.scene.background=this.savedBackground;this.scene.fog=this.savedFog;this.stage.visible=true;this.root.visible=true;this.setCar(this.carMode);this.scene.remove(this.reticle);this.reticle.geometry.dispose();this.reticle.material.dispose();this.resetCamera();document.getElementById('xr-exit')?.remove();},{once:true});
+  session.addEventListener('end',()=>{this.hitSource?.cancel();this.hitSource=null;this.xrSession=null;this.presentation.overlay.hidden=false;document.body.classList.remove('xr-active');this.scene.background=this.savedBackground;this.scene.fog=this.savedFog;this.stage.visible=true;this.root.visible=true;this.setCar(this.carMode);this.scene.remove(this.reticle);this.reticle.geometry.dispose();this.reticle.material.dispose();this.resetCamera();document.getElementById('xr-exit')?.remove();},{once:true});
   try{await this.renderer.xr.setSession(session);const ref=await session.requestReferenceSpace('viewer');this.hitSource=await session.requestHitTestSource({space:ref});}catch(error){await session.end();throw error;}
   session.addEventListener('select',()=>{if(this.reticle.visible){this.root.position.setFromMatrixPosition(this.reticle.matrix);this.root.visible=true;}});
   const exit=document.createElement('button');exit.id='xr-exit';exit.className='primary-button';exit.style.cssText='position:fixed;bottom:80px;left:20px;z-index:100';exit.textContent='Esci dalla realtà aumentata';exit.onclick=()=>session.end();document.body.append(exit);

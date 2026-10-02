@@ -12,10 +12,15 @@ export const vehicleInfo={
 
 function finishMaterial(original,role){
  const tire=role==='tire',wheel=role==='wheel',glass=role==='glass';
- const m=new THREE.MeshStandardMaterial({color:tire?'#252a30':wheel?'#72818f':glass?'#8caebe':'#7da6bd',metalness:wheel?.25:0,roughness:tire?.95:wheel?.72:.86,transparent:!tire&&!wheel,opacity:glass?.075:role==='interior'?.018:.12,depthWrite:tire||wheel,side:THREE.FrontSide});
+ const m=new THREE.MeshStandardMaterial({color:tire?'#252a30':wheel?'#72818f':glass?'#8caebe':'#7da6bd',metalness:wheel?.25:0,roughness:tire?.95:wheel?.72:.86,transparent:!tire&&!wheel,opacity:tire||wheel?1:glass?.07:.1,depthWrite:tire||wheel,side:THREE.FrontSide});
  if(tire){m.normalMap=original.normalMap;m.normalScale.copy(original.normalScale||new THREE.Vector2(1,1));}
  m.envMapIntensity=.12;
- m.userData.role=role;
+ m.userData.role=role;m.userData.overviewOpacity=m.opacity;
+ if(role==='body'||role==='glass'){
+  m.onBeforeCompile=shader=>{shader.fragmentShader=shader.fragmentShader.replace('#include <opaque_fragment>',`diffuseColor.a *= 0.2 + 0.8 * pow(1.0 - abs(dot(normal, normalize(vViewPosition))), 2.0);
+#include <opaque_fragment>`);};
+  m.customProgramCacheKey=()=> 'xray-contour-v1';
+ }
  return m;
 }
 
@@ -46,9 +51,11 @@ function prepareTesla(source){
    const wheelMaterial=/Tire1|Georimblurlfsub021/.test(name)||(/Georimblurlfsub01/.test(name)&&y<.65);
    const w=wheelMaterial&&Math.abs(x)>.7&&Math.min(Math.abs(z-1.49),Math.abs(z+1.385))<.4 ? (z>0?0:2)+(x>0?1:0):-1;
    let role=w>=0?(/Tire1/.test(name)?'tire':'wheel'):/window|Geodoorl2sub31|Geodoorr2sub31/i.test(name)?'glass':/cockpit|intsub|Ln7/i.test(name)?'interior':'body';
+   if(w<0&&Math.abs(x)<.72&&y>.27&&y<1.05&&z>-.95&&z<.65)role='interior';
    const key=`${w}:${role}`;if(!buckets.has(key))buckets.set(key,{w,role,indices:[]});buckets.get(key).indices.push(...ids);
   }
   for(const {w,role,indices}of buckets.values()){
+   if(role==='interior')continue;
    const g=geometry.clone();g.setIndex(indices);const target=w>=0?wheels[w]:body;
    if(w>=0)g.translate(-target.position.x,-target.position.y,-target.position.z);
    g.computeBoundingBox();g.computeBoundingSphere();const mesh=new THREE.Mesh(g,finishMaterial(original,role));mesh.castShadow=w>=0;target.add(mesh);
@@ -72,7 +79,7 @@ function prepareConcept(source){
   const materialName=original.name||'';
   const wheel=/Wheel|Axle/i.test(name)||/Tire|Rim|Disc|Brake/.test(materialName);
   const role=wheel?(/Tire/i.test(materialName)?'tire':'wheel'):/Glass|Window/i.test(name+' '+materialName)?'glass':/Interior|Floor|Dashboard|Underside/i.test(name)?'interior':'body';
-  if(name==='Engine'||/License|Emblem/i.test(name)){o.visible=false;return;}
+  if(role==='interior'||name==='Engine'||/License|Emblem/i.test(name)){o.visible=false;return;}
   o.material=finishMaterial(original,role);o.castShadow=wheel;
  });
  car.userData.wheels=wheels;
