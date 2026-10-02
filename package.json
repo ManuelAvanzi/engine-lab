@@ -1,0 +1,1 @@
+{"name":"propulsion-lab","version":"1.0.0","private":true,"type":"module","scripts":{"build":"node build.mjs","dev":"node server.mjs","test":"node --test tests/simulation.test.mjs"},"dependencies":{"three":"^0.180.0","lucide":"^0.468.0"},"devDependencies":{"esbuild":"^0.25.0"}}
