@@ -2,7 +2,17 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {simulate,systems,scenarios} from '../src/data.js';
 import {handleRequest} from '../src/worker.js';
+import {motionStep,ratios} from '../src/motion.js';
 const base={scenario:'mixed',rpm:2800,load:50,ambient:20,cooling:true};
+test('Motore, ruote e impulsi condividono pausa e rapporto; parti separate fermano la trasmissione',()=>{
+ for(const type of Object.keys(ratios)){
+  const run=motionStep(type,{playing:true,assembled:true,rpm:2800,rate:1},.02);
+  assert.ok(run.engine>0&&run.flow>0);assert.equal(run.engine/run.wheels,ratios[type]);
+  assert.deepEqual(motionStep(type,{playing:false,assembled:true},.02),{engine:0,wheels:0,flow:0});
+  const open=motionStep(type,{playing:true,assembled:false},.02);assert.ok(open.engine>0);assert.equal(open.wheels,0);assert.equal(open.flow,0);
+  const faster=motionStep(type,{playing:true,assembled:true,rpm:5600,rate:1},.02);assert.ok(faster.wheels>run.wheels);
+ }
+});
 test('La conversione conserva il bilancio energetico per tutti gli scenari',()=>{
  for(const system of Object.keys(systems))for(const scenario of Object.keys(scenarios))for(const load of [10,50,100]){
   const m=simulate(system,{...base,scenario,load});

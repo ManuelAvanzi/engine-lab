@@ -12,13 +12,15 @@ import { components } from './data.js';
 import { createStudio, addMachining } from './studio.js';
 
 import {Presentation} from './presentation.js';
+import {FlowAnimation} from './flows.js';
+import {motionStep} from './motion.js';
 import {loadVehicle, vehicleInfo} from './vehicles.js';
 
 const metal = (color, roughness=.58, metalness=.4) => new THREE.MeshStandardMaterial({color, roughness, metalness});
 export class PowertrainViewer {
  constructor(host, onSelect) {
   this.host=host; this.onSelect=onSelect; this.parts={}; this.meshes=[]; this.pistons=[]; this.rods=[]; this.rotating=[];
-  this.playing=!matchMedia('(prefers-reduced-motion: reduce)').matches; this.playbackRate=1;this.angle=0; this.explosion=0; this.targetExplosion=0; this.section=true; this.risk=false; this.isolated=false;this.carMode=true;this.dragMode=false;this.valves=[];this.chambers=[];
+  this.playing=!matchMedia('(prefers-reduced-motion: reduce)').matches; this.playbackRate=1;this.rpm=2800;this.wheelAngle=0;this.angle=0; this.explosion=0; this.targetExplosion=0; this.section=true; this.risk=false; this.isolated=false;this.carMode=true;this.dragMode=false;this.valves=[];this.chambers=[];
   this.scene=new THREE.Scene();
   this.camera=new THREE.PerspectiveCamera(36,1,.05,100); this.renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
   this.renderer.setPixelRatio(Math.min(devicePixelRatio,2)); this.renderer.shadowMap.enabled=true; this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;
@@ -33,7 +35,7 @@ export class PowertrainViewer {
   this.raycaster=new THREE.Raycaster();this.pointer=new THREE.Vector2();this.installInteraction();
   this.composer=new EffectComposer(this.renderer);this.composer.addPass(new RenderPass(this.scene,this.camera));this.bloom=new UnrealBloomPass(new THREE.Vector2(512,512),.035,.25,2.5);this.composer.addPass(this.bloom);this.composer.addPass(new OutputPass());
   this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(host);
-  this.presentation=new Presentation(this);this.clock=new THREE.Clock();this.renderer.setAnimationLoop((time,frame)=>this.animate(frame));
+  this.presentation=new Presentation(this);this.flows=new FlowAnimation(this);this.clock=new THREE.Clock();this.renderer.setAnimationLoop((time,frame)=>this.animate(frame));
  }
  resize(){const {width,height}=this.host.getBoundingClientRect();if(!width||!height)return;this.camera.aspect=width/height;const fit=Math.max(1,1.15/this.camera.aspect);if(this.controls&&!this.xrSession){const delta=this.camera.position.clone().sub(this.controls.target);this.camera.position.copy(this.controls.target).add(delta.multiplyScalar(fit/(this.aspectFit||1)));}this.aspectFit=fit;this.camera.updateProjectionMatrix();this.renderer.setSize(width,height);this.composer?.setSize(width,height);}
  resetCamera(){const fit=Math.max(1,1.15/this.camera.aspect),spread=Object.values(this.parts).some(p=>p.userData.detached);const target=new THREE.Vector3(0,this.carMode?1.15:1.38+1.1*(this.targetExplosion||0)+(spread?.55:0),this.carMode?1:0);const position=new THREE.Vector3(...(this.carMode?(this.type==='ev'?[11,7.3,-14]:[11,7.3,14]):[5.7,3.1,7.4])).multiplyScalar(fit*(1+.4*(this.targetExplosion||0))*(spread?1.22:1)).add(target);this.aspectFit=fit;if(this.presentation){this.presentation.setFocused(false);this.presentation.move(position,target);}else{this.controls.target.copy(target);this.camera.position.copy(position);this.controls.update();}}
@@ -128,7 +130,7 @@ export class PowertrainViewer {
  }
  updateVehicleLabel(text){const label=document.getElementById('vehicle-name');if(label)label.textContent=text;const note=document.getElementById('vehicle-note');if(note)note.textContent=vehicleInfo[this.type]?.note||'';}
  select(id,focus=false){this.selected=id;this.paint();if(focus&&!this.dragMode)this.presentation?.focus();}
- setCar(value){this.carMode=value;this.car.visible=value&&!this.isolated&&!this.xrSession&&this.host.dataset.vehicleStatus==='ready';this.root.scale.setScalar(value?(this.type==='ev'?.6:.72):1);this.root.position.set(0,value?(this.type==='ev'?.08:.38):0,value?(this.type==='ev'?-3.45:3.3):0);document.querySelector('.vehicle-card')?.classList.toggle('hidden',!value);this.layoutBattery(value);this.resetCamera();}
+ setCar(value){this.carMode=value;this.car.visible=value&&!this.isolated&&!this.xrSession&&this.host.dataset.vehicleStatus==='ready';this.root.scale.setScalar(value?(this.type==='ev'?.6:.72):1);this.root.position.set(0,value?(this.type==='ev'?.08:.38):0,value?(this.type==='ev'?-3.45:3.3):0);document.querySelector('.vehicle-card')?.classList.toggle('hidden',!value);this.layoutBattery(value);this.flows?.rebuild();this.resetCamera();}
  layoutBattery(inCar){if(this.type!=='ev'||!this.parts.battery)return;for(const mesh of this.parts.battery.children){if(!mesh.isMesh)continue;mesh.userData.restPosition??=mesh.position.clone();mesh.userData.restScale??=mesh.scale.clone();if(mesh.geometry.type==='TubeGeometry'){mesh.userData.hideInCar=true;mesh.visible=!inCar;continue;}mesh.position.copy(mesh.userData.restPosition);mesh.scale.copy(mesh.userData.restScale);if(inCar){mesh.position.set(mesh.position.x*1.5,mesh.position.y+.3,(mesh.position.z+1.95)*6.4+5.4);mesh.scale.multiply(new THREE.Vector3(1.5,1,6.4));}}}
  setDragMode(value){this.dragMode=value;this.host.style.cursor=value?'grab':'';}
  detachSelected(){const p=this.parts[this.selected];if(!p)return;p.userData.detached=!p.userData.detached;if(!p.userData.detached)p.userData.manualOffset.set(0,0,0);this.presentation?.focus();return p.userData.detached;}
@@ -156,7 +158,10 @@ export class PowertrainViewer {
  }
  getHits(){return this.raycaster.intersectObjects(this.meshes).filter(h=>h.object.parent.visible&&h.object.visible&&this.parts[h.object.userData.part]?.visible&&h.object.material.opacity>.2);}
  pick(){const hits=this.getHits();if(hits[0])this.onSelect(hits[0].object.userData.part);}
- animate(frame){const dt=Math.min(this.clock.getDelta(),.05);if(this.playing)this.angle+=dt*3.1*this.playbackRate;
+ animate(frame){const dt=Math.min(this.clock.getDelta(),.05);
+  const assembled=this.explosion<.02&&this.targetExplosion===0&&Object.values(this.parts).every(p=>!p.userData.detached&&p.userData.manualOffset.lengthSq()<.0001&&p.position.distanceToSquared(p.userData.origin||new THREE.Vector3())<.0025);
+  const step=motionStep(this.type||'ice',{playing:this.playing,assembled,rpm:this.rpm,rate:this.playbackRate},dt);this.angle+=step.engine;this.wheelAngle+=step.wheels;
+  for(const wheel of this.car.userData.wheels||[])wheel.rotation.x=this.wheelAngle;
   this.explosion=this.presentation?.reduced?this.targetExplosion:this.explosion+(this.targetExplosion-this.explosion)*.08;
   Object.values(this.parts).forEach(g=>{const target=(g.userData.origin||new THREE.Vector3()).clone().addScaledVector(g.userData.offset,this.explosion);if(g.userData.detached)target.addScaledVector(g.userData.offset.clone().normalize(),2.7);target.add(g.userData.manualOffset);g.position.lerp(target,this.presentation?.reduced?1:1-Math.exp(-dt*12));});
   this.pistons.forEach(({g,index})=>{const a=this.angle+(index===0||index===3?0:Math.PI),r=.30,l=.92;g.position.y=.43+r*Math.cos(a)+Math.sqrt(l*l-(r*Math.sin(a))**2)+.08;});
@@ -170,6 +175,7 @@ export class PowertrainViewer {
 
   const phaseLabel=document.getElementById('cycle-phase');if(phaseLabel){const phase=(this.angle%(Math.PI*4))/(Math.PI);const names=['Espansione','Scarico','Aspirazione','Compressione'];const text=this.type==='ev'?'Campo rotante · rotore in movimento':`${names[Math.floor(phase)]} · cilindro 1`;if(phaseLabel.textContent!==text)phaseLabel.textContent=text;phaseLabel.dataset.phase=this.angle.toFixed(2);}
   if(this.xrSession&&frame&&this.hitSource){const hits=frame.getHitTestResults(this.hitSource);this.reticle.visible=hits.length>0;if(hits.length){const pose=hits[0].getPose(this.renderer.xr.getReferenceSpace());this.reticle.matrix.fromArray(pose.transform.matrix);}}
+  this.flows?.update(step.flow,assembled);
   if(!this.xrSession){this.presentation?.update(dt);this.composer.render();}else this.renderer.render(this.scene,this.camera);
  }
  exportModel(){const clone=this.root.clone(true);clone.traverse(o=>{if(o.userData.restPosition)o.position.copy(o.userData.restPosition);if(o.userData.restScale)o.scale.copy(o.userData.restScale);if(o.userData.hideInCar)o.visible=true;});return clone;}

@@ -46,7 +46,9 @@ Il limite in memoria per IP è una mitigazione leggera, non un limite globale di
 
 Propulsori schematici originali, non CAD industriali né modelli in scala reale. Carrozzeria Tesla Model 3 (2024) per EV; Car Concept di Khronos per termico/ibrido. Crediti e licenze CC BY 4.0 in `src/models/credits.html`. I propulsori non sono ricostruzioni OEM dei veicoli. La simulazione è illustrativa e non costituisce diagnosi o calcolo di omologazione. Le ipotesi e le fonti DOE sono consultabili dall'interfaccia. Sono escluse le emissioni del ciclo di vita e le perdite di ricarica. Le temperature di refrigerante e avvolgimenti rappresentano grandezze diverse.
 
-L'animazione riproduce il meccanismo biella-manovella, non la combustione fluidodinamica. Gli rpm modificano i valori del modello; l'animazione resta rallentata per leggibilità. In vista esplosa i collegamenti sono deliberatamente separati.
+L'animazione riproduce il meccanismo biella-manovella, non la combustione fluidodinamica. Gli rpm modificano i valori del modello e la velocità dei movimenti, che restano rallentati per leggibilità. In vista esplosa i collegamenti sono deliberatamente separati.
+
+Le ruote seguono il motore con pausa e velocità condivise. I rapporti sono illustrativi: 5:1 termico, 6:1 ibrido, 9:1 elettrico. Separare o spostare le parti sospende ruote e flussi fino alla ricomposizione. Le frecce indicano aria aspirata (blu), gas di scarico (corallo), energia elettrica (turchese) e coppia meccanica (ambra). I percorsi sono schemi funzionali, non tubazioni o cablaggi OEM; non vengono esportati né mostrati in AR. Il comando Flussi consente di nasconderli.
 
 WebXR richiede HTTPS, browser e hardware compatibili, autorizzazione e supporto hit-test. Quick Look è un'esportazione statica; non porta con sé quiz o interfaccia del tutor. L'esportazione include le parti visibili nella configurazione corrente. La verifica su tablet fisico e Meta Quest 3 resta da effettuare.
 

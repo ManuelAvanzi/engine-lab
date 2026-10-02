@@ -73,11 +73,19 @@ function prepareConcept(source){
  if(size.x>size.z)source.rotation.y=Math.PI/2;
  car.updateMatrixWorld(true);const box=new THREE.Box3().setFromObject(car),s=12/Math.max(size.x,size.z),c=box.getCenter(new THREE.Vector3());
  source.position.set(-c.x,-box.min.y,-c.z);car.scale.setScalar(s);car.position.y=-.34;
- const wheels=[];
+ const wheels=[],wheelRoots=[];
+ source.traverse(o=>{if(/^Wheel(Front|Rear)[LR]$/.test(o.name))wheelRoots.push(o);});
+ for(const wheelRoot of wheelRoots){
+  // The source has a proper axle pivot. Rotate tire, rim and disc together;
+  // the brake caliper stays attached to the suspension.
+  const spinning=new THREE.Group();spinning.name=wheelRoot.name+'Spin';
+  for(const child of [...wheelRoot.children])if(!/BrakePad/.test(child.name))spinning.add(child);
+  wheelRoot.add(spinning);wheels.push(spinning);
+ }
  source.traverse(o=>{if(!o.isMesh)return;
   const name=o.name,original=o.material;
   const materialName=original.name||'';
-  const wheel=/Wheel|Axle/i.test(name)||/Tire|Rim|Disc|Brake/.test(materialName);
+  const wheel=/^Wheel|Axle/i.test(name)||/Tire|Rim|Disc|Brake/.test(materialName);
   const role=wheel?(/Tire/i.test(materialName)?'tire':'wheel'):/Glass|Window/i.test(name+' '+materialName)?'glass':/Interior|Floor|Dashboard|Underside/i.test(name)?'interior':'body';
   if(role==='interior'||name==='Engine'||/License|Emblem/i.test(name)){o.visible=false;return;}
   o.material=finishMaterial(original,role);o.castShadow=wheel;
