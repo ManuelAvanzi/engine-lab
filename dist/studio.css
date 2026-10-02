@@ -16,3 +16,16 @@
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
 
 .flow-legend{margin:0 0 14px;padding:12px 16px;border:1px solid #dce6df;border-radius:8px;background:#fff}.flow-key{display:flex;flex-wrap:wrap;gap:8px 22px}.flow-key>span{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:#354e42}.flow-key i{display:inline-block;width:17px;height:4px;border-radius:3px;background:var(--flow-color);box-shadow:0 0 0 1px #0001}.flow-legend p{font-size:12px;line-height:1.5;color:#617269;margin:7px 0 3px}.flow-legend p button{color:#365e49;text-decoration:underline;margin-left:8px;font-size:12px}.flow-legend small{display:block;font-size:10px;line-height:1.5;color:#76877d}.flow-legend.flows-disabled .flow-key{opacity:.5}.scene-actionbar{gap:6px}.scene-actionbar button{padding:9px 10px}.flow-legend button:focus-visible{outline:2px solid #559579;outline-offset:3px}.xr-active .flow-legend{display:none}@media(max-width:620px){.flow-legend{padding:10px 12px}.flow-key{gap:8px 14px}.flow-key>span{font-size:11px}.flow-legend p{font-size:11px}.flow-legend small{font-size:9px}.scene-actionbar{left:16px;right:16px;bottom:110px;justify-content:flex-end}.scene-actionbar button{padding:8px;font-size:10px}.cycle-panel{bottom:163px}}
+/* Guided energy pathways */
+.flow-legend{background:#101e29;color:#dce8ec;border:1px solid #263946;padding:0;overflow:hidden}
+.flow-tabs{display:flex;border-bottom:1px solid #2c3c47;gap:0;overflow-x:auto}
+.flow-tabs button{flex:1;white-space:nowrap;padding:12px 14px;background:transparent;color:#9badb9;border:0;border-bottom:2px solid transparent;font-size:12px;text-align:left}
+.flow-tabs button b{color:var(--flow-color);font-size:10px;margin-right:9px;opacity:.65}
+.flow-tabs button[aria-pressed=true]{background:#1a2d3a;color:#fff;border-bottom-color:var(--flow-color)}
+.flow-tabs button:focus-visible{outline:2px solid #fff;outline-offset:-3px}
+.flow-lesson{display:grid;grid-template-columns:235px 1fr;gap:22px;align-items:center;padding:15px 18px}
+.flow-lesson span{display:block;text-transform:uppercase;letter-spacing:1.4px;font-size:9px;color:var(--flow-color);margin-bottom:7px}
+.flow-lesson strong{font-size:13px;font-weight:550}.flow-lesson p{color:#b8c9d2;font-size:12px;line-height:1.6;margin:0}
+#drivetrain-readout{margin:0 18px 9px;padding-top:10px;border-top:1px solid #283c49;font:12px ui-monospace,monospace;color:#efc782}
+.flow-legend #flow-status{display:block;color:#97aab8;margin:0 18px 13px;font-size:10px;line-height:1.5}.flows-disabled .flow-lesson{opacity:.5}
+@media(max-width:900px){.flow-lesson{grid-template-columns:1fr;gap:8px;padding:12px 15px}.flow-tabs button{font-size:11px;padding:11px 10px}.flow-tabs button b{margin-right:5px}}

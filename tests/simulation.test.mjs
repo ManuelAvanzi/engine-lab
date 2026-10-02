@@ -2,8 +2,16 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {simulate,systems,scenarios} from '../src/data.js';
 import {handleRequest} from '../src/worker.js';
-import {motionStep,ratios} from '../src/motion.js';
+import {motionStep,ratios,drivetrain,slowMotion} from '../src/motion.js';
 const base={scenario:'mixed',rpm:2800,load:50,ambient:20,cooling:true};
+test('La riduzione conserva il rapporto e il rallentamento su tutto il regime',()=>{
+ for(const type of Object.keys(ratios))for(const rpm of [800,2800,6000,14000]){
+  const step=motionStep(type,{playing:true,assembled:true,rpm,rate:1},.02);
+  assert.ok(Math.abs(step.engine/.02*60/(2*Math.PI)*slowMotion-rpm)<1e-9);
+  assert.ok(Math.abs(step.wheels/.02*60/(2*Math.PI)*slowMotion-drivetrain(type,rpm).wheelRpm)<1e-9);
+ }
+ assert.equal(drivetrain('ice',2800).wheelRpm,560);
+});
 test('Motore, ruote e impulsi condividono pausa e rapporto; parti separate fermano la trasmissione',()=>{
  for(const type of Object.keys(ratios)){
   const run=motionStep(type,{playing:true,assembled:true,rpm:2800,rate:1},.02);

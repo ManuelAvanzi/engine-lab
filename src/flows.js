@@ -1,22 +1,28 @@
 import * as THREE from 'three';
-import {ratios} from './motion.js';
+import {ratios,drivetrain,slowMotion} from './motion.js';
 
 const colors={air:'#62baff',exhaust:'#ff7967',electric:'#67e5d2',torque:'#efbc67'};
 const captions={air:'Aria aspirata',exhaust:'Gas di scarico',electric:'Energia elettrica',torque:'Coppia meccanica'};
+const lessons={
+ air:['Aspirazione → cilindri','L’aria porta ossigeno. Durante l’aspirazione entra nel cilindro attraverso le valvole aperte; servirà alla combustione del carburante.','Materia in movimento'],
+ exhaust:['Cilindri → collettore di scarico','Dopo l’espansione, il pistone espelle i gas attraverso le valvole di scarico. Il percorso mostra l’uscita dal motore, non l’intera linea di scarico.','Materia e calore'],
+ electric:['Batteria → inverter → motore','La batteria fornisce corrente continua (DC). L’inverter la converte in corrente alternata (AC), creando nello statore il campo magnetico che fa ruotare il rotore.','Energia che si trasforma'],
+ torque:['Motore → trasmissione → ruote','La trasmissione riduce la velocità di rotazione e aumenta la coppia disponibile, al netto delle perdite. La scia rappresenta il trasferimento di energia meccanica, non un fluido.','Rotazione e forza']
+};
 export class FlowAnimation{
- constructor(viewer){this.v=viewer;this.enabled=true;this.phase=0;this.paths=[];this.group=new THREE.Group();this.group.name='Percorsi didattici luminosi';viewer.scene.add(this.group);this.up=new THREE.Vector3(0,1,0);}
+ constructor(viewer){this.v=viewer;this.enabled=true;this.selected='air';this.phase=0;this.paths=[];this.group=new THREE.Group();this.group.name='Percorsi didattici luminosi';viewer.scene.add(this.group);document.addEventListener('click',e=>{const b=e.target.closest('[data-flow-kind]');if(b){this.selected=b.dataset.flowKind;this.renderLegend();}});}
  clear(){this.group.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});this.group.clear();this.paths=[];}
  path(kind,points){
   const curve=new THREE.CatmullRomCurve3(points,false,'centripetal');
-  const color=colors[kind];
-  const track=new THREE.Mesh(new THREE.TubeGeometry(curve,48,.012,5,false),new THREE.MeshBasicMaterial({color,transparent:true,opacity:.24,depthWrite:false,depthTest:false,toneMapped:false}));track.renderOrder=5;this.group.add(track);
-  const arrows=[];
-  for(let i=0;i<3;i++){
-   const pulse=new THREE.Group();
-   const core=new THREE.Mesh(new THREE.ConeGeometry(.065,.21,8),new THREE.MeshBasicMaterial({color,toneMapped:false,depthTest:false,depthWrite:false}));core.renderOrder=7;pulse.add(core);
-   const halo=new THREE.Mesh(new THREE.SphereGeometry(.13,8,6),new THREE.MeshBasicMaterial({color,transparent:true,opacity:.14,blending:THREE.AdditiveBlending,depthWrite:false,depthTest:false,toneMapped:false}));halo.renderOrder=6;pulse.add(halo);this.group.add(pulse);arrows.push(pulse);
+  const group=new THREE.Group(),materials=[];this.group.add(group);
+  // A continuous luminous filament with tapered moving packets, no solid arrows.
+  for(const [radius,strength] of [[.025,1],[.075,.18]]){
+   const material=new THREE.ShaderMaterial({uniforms:{color:{value:new THREE.Color(colors[kind])},phase:{value:0},strength:{value:strength}},transparent:true,depthWrite:false,depthTest:false,blending:THREE.AdditiveBlending,
+    vertexShader:'varying vec2 vUv; void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+    fragmentShader:'uniform vec3 color; uniform float phase; uniform float strength; varying vec2 vUv; void main(){float p=fract(vUv.x*3.-phase);float tail=smoothstep(.38,.98,p)*(1.-smoothstep(.98,1.,p));float edge=sin(vUv.y*3.14159);gl_FragColor=vec4(color,(.09+tail*.91)*strength*(.4+.6*edge));}'});
+   const mesh=new THREE.Mesh(new THREE.TubeGeometry(curve,80,radius,8,false),material);mesh.renderOrder=6;group.add(mesh);materials.push(material);
   }
-  this.paths.push({curve,arrows,length:curve.getLength()});
+  this.paths.push({kind,group,materials,length:curve.getLength()});
  }
  rebuild(){
   this.clear();const v=this.v;if(!v.type)return;v.root.updateMatrixWorld(true);v.car.updateMatrixWorld(true);
@@ -47,14 +53,16 @@ export class FlowAnimation{
  renderLegend(){
   const v=this.v,legend=document.getElementById('flow-legend');if(!legend)return;
   const kinds=v.type==='ice'?['air','exhaust','torque']:v.type==='ev'?['electric','torque']:['air','exhaust','electric','torque'];
-  legend.innerHTML=`<div class="flow-key">${kinds.map(k=>`<span><i style="--flow-color:${colors[k]}"></i>${captions[k]}</span>`).join('')}</div><p>${v.type==='ev'?'Batteria → inverter → motore → riduttore → ruote.':v.type==='hybrid'?'Termico e motore elettrico contribuiscono alla trasmissione.':'L’aria entra nei cilindri, i gas escono; il motore trasmette coppia alle ruote.'} <button data-action="energy-flow">Come funziona</button></p><small id="flow-status"></small>`;
+  if(!kinds.includes(this.selected))this.selected=kinds[0];const lesson=lessons[this.selected];
+  legend.innerHTML=`<div class="flow-tabs" aria-label="Scegli il percorso da seguire">${kinds.map((k,i)=>`<button data-flow-kind="${k}" aria-pressed="${k===this.selected}" style="--flow-color:${colors[k]}"><b>0${i+1}</b>${captions[k]}</button>`).join('')}</div><div class="flow-lesson" style="--flow-color:${colors[this.selected]}"><div><span>${lesson[2]}</span><strong>${lesson[0]}</strong></div><p>${lesson[1]}</p></div><div id="drivetrain-readout"></div><small id="flow-status"></small>`;
  }
  update(step,assembled){
   const v=this.v;if(assembled&&!this.wasAssembled)this.rebuild();this.wasAssembled=assembled;this.phase+=step;const visible=this.enabled&&assembled&&!v.isolated&&!v.xrSession;
   this.group.visible=visible;
-  if(visible)for(const {curve,arrows,length}of this.paths)arrows.forEach((pulse,i)=>{const t=(this.phase*1.3/Math.max(1,length)+i/3)%1;pulse.position.copy(curve.getPointAt(t));pulse.quaternion.setFromUnitVectors(this.up,curve.getTangentAt(t).normalize());});
+  for(const path of this.paths){path.group.visible=path.kind===this.selected;if(visible)for(const material of path.materials)material.uniforms.phase.value=this.phase*2/Math.max(1,path.length);}
+  const readout=document.getElementById('drivetrain-readout');if(readout){const d=drivetrain(v.type,v.rpm),text=assembled?`${Math.round(v.rpm).toLocaleString('it-IT')} rpm motore ÷ ${d.ratio} = ${Math.round(d.wheelRpm).toLocaleString('it-IT')} rpm ruote`:'Collegamento interrotto · ruote ferme';if(readout.textContent!==text)readout.textContent=text;}
   const status=document.getElementById('flow-status');if(status){
-   const text=!this.enabled?'Flussi nascosti.':!assembled||v.isolated?'Flussi sospesi: ricomponi e mostra il sistema completo.':`${v.playing?'Trasmissione in marcia':'Animazione in pausa'} · velocità rallentata · rapporto motore/ruote illustrativo ${ratios[v.type]}:1. Percorsi schematici, non tubazioni o cablaggi reali.`;
+   const text=!this.enabled?'Flussi nascosti.':!assembled||v.isolated?'Trasmissione sospesa: ricomponi e mostra il sistema completo.':`${v.playing?'In marcia':'In pausa'} · riproduzione ${v.playbackRate}×, rallentata ${slowMotion}:1 · rapporto totale ${ratios[v.type]}:1 illustrativo, fisso. Valori rpm riferiti al modello in marcia. Scie schematiche: non indicano la velocità reale di gas o corrente.`;
    if(status.textContent!==text)status.textContent=text;
    status.dataset.phase=this.phase.toFixed(3);status.dataset.wheelAngle=v.wheelAngle.toFixed(3);status.dataset.active=String(visible);
   }

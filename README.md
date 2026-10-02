@@ -69,3 +69,7 @@ Per rigenerare: scaricare `tesla-source.glb` da https://raw.githubusercontent.co
 La carrozzeria usa trasparenza graduata sui contorni e nasconde gli interni. La selezione di una parte avvicina la camera con una transizione interrompibile ruotando il modello; `Vista generale` ripristina il contesto completo. Nei dettagli le ruote vengono nascoste per non coprire il propulsore. I movimenti rispettano la preferenza di riduzione delle animazioni.
 
 La vista esplosa usa direzioni coerenti per gli assiemi, guide tratteggiate verso le sedi originali e al massimo tre etichette, con priorità alla selezione. Le annotazioni non fanno parte delle esportazioni. La scheda è richiudibile e parte chiusa su tablet; i comandi secondari sono sotto `Strumenti`.
+
+## Percorsi guidati e rapporto di trasmissione
+
+I flussi sono filamenti animati con impulsi sfumati, selezionabili singolarmente. Ogni percorso spiega origine, destinazione e trasformazione. La velocità delle scie non rappresenta la velocità fisica di gas o corrente. Motore e ruote usano rpm reali del modello convertiti in radianti e rallentati insieme di 100 volte, moltiplicati per la velocità di riproduzione. Il pannello espone rpm motore / rapporto totale = rpm ruote. Rapporto fisso illustrativo, senza slittamento, cambi marcia o modello cinematico OEM dell'ibrido.
