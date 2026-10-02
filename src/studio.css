@@ -29,3 +29,11 @@
 #drivetrain-readout{margin:0 18px 9px;padding-top:10px;border-top:1px solid #283c49;font:12px ui-monospace,monospace;color:#efc782}
 .flow-legend #flow-status{display:block;color:#97aab8;margin:0 18px 13px;font-size:10px;line-height:1.5}.flows-disabled .flow-lesson{opacity:.5}
 @media(max-width:900px){.flow-lesson{grid-template-columns:1fr;gap:8px;padding:12px 15px}.flow-tabs button{font-size:11px;padding:11px 10px}.flow-tabs button b{margin-right:5px}}
+/* Compact flow selector: explanations stay available on demand. */
+.flow-legend{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;background:#fff;border-color:#dce6df;color:#385447;overflow:hidden;padding:5px 8px;margin-bottom:12px}
+.flow-tabs{gap:5px;border:0;min-width:0}.flow-tabs button{flex:0 0 auto;padding:10px 13px;border:1px solid transparent;border-radius:6px;color:#63776e;font-size:12px}.flow-tabs button b{display:none}.flow-tabs button:before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--flow-color);margin-right:8px}
+.flow-tabs button[aria-pressed=true]{background:#edf4f0;border-color:#c9dbd0;color:#234f3c}.flow-tabs button:focus-visible{outline:2px solid #5c8e75;outline-offset:-2px}
+.flow-details summary{cursor:pointer;font-size:12px;padding:11px 12px;color:#507061;white-space:nowrap}.flow-details[open]{grid-column:1/-1;border-top:1px solid #e2eae5;margin-top:4px}.flow-details[open] summary{font-weight:600}.flow-details .flow-lesson{padding:8px 12px 12px}.flow-details .flow-lesson span{color:#59816e}.flow-details .flow-lesson p{color:#60756a}.flow-details #drivetrain-readout{color:#7d612c;border-color:#e2eae5;margin:0 12px 8px}.flow-details #flow-status{color:#718379;margin:0 12px 12px}
+.viewer{height:clamp(736px,82.8vh,989px);min-height:736px}.inspector{max-height:clamp(736px,82.8vh,989px)}
+@media(max-width:900px){.viewer{height:759px;min-height:759px}.inspector{max-height:none}.flow-legend{grid-template-columns:minmax(0,1fr)}.flow-details summary{padding:7px 10px}.flow-tabs button{font-size:11px;padding:9px 10px}}
+@media(max-width:620px){.viewer{height:748px;min-height:748px}.flow-legend{padding:5px}.flow-tabs button{font-size:10px;padding:9px 8px}.flow-details summary{font-size:11px}}

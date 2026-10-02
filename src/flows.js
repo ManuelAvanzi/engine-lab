@@ -53,8 +53,8 @@ export class FlowAnimation{
  renderLegend(){
   const v=this.v,legend=document.getElementById('flow-legend');if(!legend)return;
   const kinds=v.type==='ice'?['air','exhaust','torque']:v.type==='ev'?['electric','torque']:['air','exhaust','electric','torque'];
-  if(!kinds.includes(this.selected))this.selected=kinds[0];const lesson=lessons[this.selected];
-  legend.innerHTML=`<div class="flow-tabs" aria-label="Scegli il percorso da seguire">${kinds.map((k,i)=>`<button data-flow-kind="${k}" aria-pressed="${k===this.selected}" style="--flow-color:${colors[k]}"><b>0${i+1}</b>${captions[k]}</button>`).join('')}</div><div class="flow-lesson" style="--flow-color:${colors[this.selected]}"><div><span>${lesson[2]}</span><strong>${lesson[0]}</strong></div><p>${lesson[1]}</p></div><div id="drivetrain-readout"></div><small id="flow-status"></small>`;
+  if(!kinds.includes(this.selected))this.selected=kinds[0];const lesson=lessons[this.selected],expanded=legend.querySelector('.flow-details')?.open;
+  legend.innerHTML=`<div class="flow-tabs" aria-label="Scegli il percorso da seguire">${kinds.map((k,i)=>`<button data-flow-kind="${k}" aria-pressed="${k===this.selected}" style="--flow-color:${colors[k]}"><b>0${i+1}</b>${captions[k]}</button>`).join('')}</div><details class="flow-details" ${expanded?'open':''}><summary>Spiegazione del flusso</summary><div class="flow-lesson" style="--flow-color:${colors[this.selected]}"><div><span>${lesson[2]}</span><strong>${lesson[0]}</strong></div><p>${lesson[1]}</p></div><div id="drivetrain-readout"></div><small id="flow-status"></small></details>`;
  }
  update(step,assembled){
   const v=this.v;if(assembled&&!this.wasAssembled)this.rebuild();this.wasAssembled=assembled;this.phase+=step;const visible=this.enabled&&assembled&&!v.isolated&&!v.xrSession;
