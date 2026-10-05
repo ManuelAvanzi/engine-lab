@@ -1,0 +1,10 @@
+import * as THREE from 'three';
+function outline(w,d,r){const s=new THREE.Shape(),x=w/2,y=d/2;s.moveTo(-x+r,-y);s.lineTo(x-r,-y);s.quadraticCurveTo(x,-y,x,-y+r);s.lineTo(x,y-r);s.quadraticCurveTo(x,y,x-r,y);s.lineTo(-x+r,y);s.quadraticCurveTo(-x,y,-x,y-r);s.lineTo(-x,-y+r);s.quadraticCurveTo(-x,-y,-x+r,-y);return s;}
+export function castRim(w,d,height,wall){const s=outline(w,d,.16),hole=outline(w-wall*2,d-wall*2,.10);s.holes.push(hole);const g=new THREE.ExtrudeGeometry(s,{depth:height,bevelEnabled:true,bevelSize:.014,bevelThickness:.012,bevelSegments:3,curveSegments:8,steps:1});g.rotateX(-Math.PI/2);return g;}
+export function pistonShell(){return new THREE.LatheGeometry([[.26,-.21],[.32,-.21],[.345,-.17],[.345,.16],[.325,.20],[0,.20],[0,.145],[.24,.145],[.26,.10],[.26,-.21]].map(p=>new THREE.Vector2(...p)),64);}
+export function gearGeometry(radius,width,teeth=24){const s=new THREE.Shape();for(let i=0;i<teeth*4;i++){const a=i/(teeth*4)*Math.PI*2,r=radius*(i%4===1||i%4===2?1:.88);if(i===0)s.moveTo(Math.cos(a)*r,Math.sin(a)*r);else s.lineTo(Math.cos(a)*r,Math.sin(a)*r);}s.closePath();const hole=new THREE.Path();hole.absarc(0,0,radius*.24,0,Math.PI*2,true);s.holes.push(hole);const g=new THREE.ExtrudeGeometry(s,{depth:width,bevelEnabled:true,bevelSize:.008,bevelThickness:.008,bevelSegments:2,steps:1});g.translate(0,0,-width/2);g.rotateY(Math.PI/2);return g;}
+export function addFinishDetails(v){
+ const sump=v.parts.sump;if(sump){for(const x of [-1.65,-.8,0,.8,1.65])for(const z of [-.67,.67])v.mesh(sump,new THREE.CylinderGeometry(.047,.047,.05,6),'#a3afb1',[x,.36,z]);v.cylinder(sump,.085,.09,[1.68,.04,.66],'#9ba9ad','z');v.ring(sump,.065,.013,[1.68,.04,.71],'#344447','z');}
+ const housing=v.parts.housing;if(housing){for(let x=-1.02;x<=1.02;x+=.14)v.ring(housing,1.015,.015,[x,1.17,0],'#778b91','x');}
+ const inverter=v.parts.inverter;if(inverter){const e=v.type==='ev',x=e?0:2.7,y=e?2.79:2.19;for(const dx of (e?[-.97,.97]:[-.45,.45]))for(const z of [-.46,.46])v.mesh(inverter,new THREE.CylinderGeometry(.032,.032,.027,6),'#4d6067',[x+dx,y,z]);}
+}

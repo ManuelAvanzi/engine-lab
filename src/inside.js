@@ -1,3 +1,4 @@
+import {gearGeometry} from './geometry-detail.js';
 import * as THREE from 'three';
 export const insideNotes={
  sump:['Una vasca per la lubrificazione','La coppa raccoglie l’olio. Le paratie ne limitano lo spostamento; il pescante con filtro a rete lo porta verso la pompa, che si trova a valle.','Ambra: olio · turchese: pescante · chiaro: paratie'],
@@ -29,7 +30,7 @@ export function addInsideDetails(v){
   const box=(size,pos,color=silver)=>add(new THREE.BoxGeometry(...size),pos,color);
   const tube=(points,r=.03,color=cyan)=>add(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p))),24,r,8,false),[0,0,0],color);
   const ring=(r,t,pos,color=cyan,axis='x')=>add(new THREE.TorusGeometry(r,t,8,48),pos,color,axis==='x'?[0,Math.PI/2,0]:[Math.PI/2,0,0]);
-  const gear=(r,pos)=>{add(new THREE.CylinderGeometry(r,r,.13,24),pos,amber,[0,0,Math.PI/2]);for(let a=0;a<Math.PI*2;a+=Math.PI/12){const m=box([.15,.08,.09],[pos[0],pos[1]+Math.sin(a)*r,pos[2]+Math.cos(a)*r],silver);m.rotation.x=-a;}};
+  const gear=(r,pos)=>add(gearGeometry(r,.13,r>.3?24:16),pos,amber);
   if(id==='sump'){
    box([3.5,.07,1.02],[0,-.005,0],amber);
    for(const x of [-.9,.9])box([.035,.20,1.0],[x,.10,0]);
@@ -50,12 +51,12 @@ export function addInsideDetails(v){
  }
 }
 export function applyInside(v){
- const active=v.insideId===v.selected;
- if(active)for(const [id,p] of Object.entries(v.parts))p.visible=id===v.selected;
- if(v.car)v.car.visible=!active&&v.carMode&&!v.isolated&&!v.xrSession&&v.host.dataset.vehicleStatus==='ready';
- for(const [id,p] of Object.entries(v.parts))if(p.insideGroup)p.insideGroup.visible=active&&id===v.selected;
- for(const m of v.meshes){if(!active||m.userData.part!==v.selected)continue;
-  const id=v.selected,t=m.geometry.type;
+ const pinned=v.insideId===v.selected,id=v.hoverId|| (pinned?v.selected:null),active=!!id;
+ if(pinned)for(const [key,p] of Object.entries(v.parts))p.visible=key===v.selected;
+ if(v.car)v.car.visible=!pinned&&v.carMode&&!v.isolated&&!v.xrSession&&v.host.dataset.vehicleStatus==='ready';
+ for(const [key,p] of Object.entries(v.parts))if(p.insideGroup)p.insideGroup.visible=active&&key===id;
+ for(const m of v.meshes){if(!active||m.userData.part!==id)continue;
+  const t=m.geometry.type;
   const keep=(['pistons','rods','timing'].includes(id)&&t==='TorusGeometry')||(id==='pistons'&&t==='CylinderGeometry'&&m.geometry.parameters.radiusTop<.1)||(id==='head'&&!m.userData.shell)||(id==='bearings'&&t==='SphereGeometry')||(id==='rotor'&&t!=='CylinderGeometry')||(id==='stator'&&t==='RoundedBoxGeometry'&&m.geometry.parameters.width<.1);
   m.material.needsUpdate=true;m.material.transparent=!keep;m.material.opacity=keep?1:v.insideOpacity;m.material.depthWrite=keep;m.visible=true;
  }

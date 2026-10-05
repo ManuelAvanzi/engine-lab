@@ -56,6 +56,15 @@ test('Ogni parte si ispeziona e torna alla superficie senza alterare esplosione 
   for(const id of systems[type].components){
    assert.ok(insideNotes[id]?.every(Boolean),id);
    v.selected=id;v.paint();const rest=v.meshes.map(m=>[m.material.opacity,m.material.transparent,m.material.depthWrite,m.visible]);
+   const previousSelection=v.selected;
+   const hovered=systems[type].components.find(k=>k!==id);
+   v.setHover(hovered);
+   assert.equal(v.selected,previousSelection);
+   assert.ok(Object.values(v.parts).every(p=>p.visible));
+   assert.equal(v.parts[hovered].insideGroup.visible,true);
+   assert.equal(v.targetExplosion,.8);
+   v.setHover(null);
+   assert.deepEqual(v.meshes.map(m=>[m.material.opacity,m.material.transparent,m.material.depthWrite,m.visible]),rest);
    const position=v.parts[id].position.clone();v.setInside(true);
    assert.equal(v.parts[id].insideGroup.visible,true);
    assert.ok(v.meshes.some(m=>m.userData.part===id&&m.material.opacity<1));

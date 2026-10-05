@@ -80,4 +80,6 @@ Ferrari 458 Italia di vicent091036, dagli esempi ufficiali Three.js, CC BY 4.0 (
 
 ## Ispezione interna dei componenti
 
-Guarda dentro è opzionale e parte disattivato. Funziona in vista composta, esplosa, con parti estratte e in isolamento. Inquadra il componente e nasconde temporaneamente gli altri, preservando posizioni ed esplosione. Il comando Torna alla superficie ripristina i materiali precedenti. Trasparenza regolabile dal 20 al 95%; spiegazione breve nel viewer e nella scheda. Dettagli schematici aggiunti a coppa, coperchio, basamento, albero motore, condotti, inverter, batteria, carter, motogeneratore e trasmissioni; gli organi già presenti vengono evidenziati negli altri assiemi. Le parti piene sono esplicitamente descritte come tali. I dettagli non sono CAD OEM. I flussi si sospendono durante l'ispezione. Vista generale chiude la modalità.
+Passando il mouse su un componente si vede la sua struttura interna e una breve spiegazione. La camera, la selezione e gli altri pezzi restano invariati; uscendo dal componente si ripristinano i materiali. La casella Mantieni trasparenza permette di fissare l'ispezione, anche da touch e tastiera, e regolare la trasparenza dal 20 al 95%. In questa modalità il componente viene inquadrato e isolato temporaneamente. Vista generale chiude l'ispezione.
+
+Coppa cava con bordi arrotondati e tappo di scarico, coperchio con spessore, pistoni cavi inferiormente, ingranaggi sagomati e minuteria migliorano la leggibilità. Gli interni sono schemi didattici e non CAD OEM; le parti piene sono descritte come tali.
