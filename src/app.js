@@ -108,12 +108,12 @@ if(document.modelContext?.registerTool){
 
 const vehicleCard=document.createElement('div');vehicleCard.className='vehicle-card';vehicleCard.innerHTML=`<div class="vehicle-card-top"><span class="xray-dot"></span><strong id="vehicle-name">Caricamento carrozzeria…</strong><span>X-RAY</span></div><small id="vehicle-note"></small>`;$('.viewer').append(vehicleCard);
 
-const studioToolbar=document.createElement('div');studioToolbar.className='studio-toolbar';studioToolbar.innerHTML=`<span class="studio-toolbar-title">ESPLORAZIONE 3D</span><div><button data-action="reset-camera">${icon('car-front')}Vista generale</button><button data-action="focus-component">${icon('focus')}Inquadra componente</button><button data-action="toggle-inspector" aria-controls="inspector" aria-expanded="true" class="active">${icon('panel-right')}Scheda componente</button></div>`;$('.workspace').before(studioToolbar);
+const studioToolbar=document.createElement('div');studioToolbar.className='studio-toolbar';studioToolbar.innerHTML=`<div><button data-action="toggle-inspector" aria-controls="inspector" aria-expanded="true" class="active">${icon('panel-right')}Scheda componente</button></div>`;$('.page-heading').append(studioToolbar);
 const options=document.createElement('details');options.className='viewer-options';options.innerHTML=`<summary aria-label="Strumenti di visualizzazione">${icon('sliders-horizontal')}<span>Strumenti</span></summary>`;const existingTools=$('.view-tools');existingTools.before(options);options.append(existingTools);
 if(matchMedia('(max-width:900px)').matches)toggleInspector();
 refreshIcons();
 
-const flowLegend=document.createElement('section');flowLegend.id='flow-legend';flowLegend.className='flow-legend';flowLegend.setAttribute('aria-label','Legenda dei flussi luminosi');$('.studio-toolbar').after(flowLegend);
+const flowLegend=document.createElement('section');flowLegend.id='flow-legend';flowLegend.className='flow-legend';flowLegend.setAttribute('aria-label','Legenda dei flussi luminosi');$('.page-heading').after(flowLegend);
 const flowToggle=document.createElement('button');flowToggle.dataset.action='toggle-flows';flowToggle.className='active';flowToggle.setAttribute('aria-pressed','true');flowToggle.setAttribute('aria-label','Mostra flussi luminosi');flowToggle.innerHTML=`${icon('route')}Flussi`;
 $('.scene-actionbar').prepend(flowToggle);viewer?.flows.renderLegend();refreshIcons();
 
@@ -121,5 +121,5 @@ document.addEventListener('input',e=>{if(e.target.id==='inside-opacity'&&viewer)
 
 $('#canvas-host').addEventListener('part-hover',renderInsideCaption);
 
-const brightnessControl=document.createElement('label');brightnessControl.className='brightness-control';brightnessControl.innerHTML='<span>Luminosità <output id="brightness-value" for="scene-brightness">0</output></span><input id="scene-brightness" type="range" min="-40" max="60" step="5" value="0" aria-label="Luminosità della scena" aria-orientation="vertical" aria-valuetext="0, luminosità neutra">';$('.viewer').append(brightnessControl);
-$('#scene-brightness').addEventListener('input',e=>{const value=Number(e.target.value);if(viewer)viewer.renderer.toneMappingExposure=1.15*(1+value/100);const label=value>0?'+'+value:String(value);$('#brightness-value').textContent=label;e.target.setAttribute('aria-valuetext',value===0?'0, luminosità neutra':label);});
+const brightnessControl=document.createElement('label');brightnessControl.className='brightness-control';brightnessControl.innerHTML='<span title="Luminosità">☀ <output id="brightness-value" for="scene-brightness">0</output></span><input id="scene-brightness" type="range" min="0" max="100" step="5" value="0" aria-label="Luminosità della scena" aria-orientation="vertical" aria-valuetext="0, luminosità minima">';$('.viewer').append(brightnessControl);
+$('#scene-brightness').addEventListener('input',e=>{const value=Number(e.target.value);if(viewer)viewer.renderer.toneMappingExposure=1.15*(.6+value/100);const label=String(value);$('#brightness-value').textContent=label;e.target.setAttribute('aria-valuetext',value===0?'0, luminosità minima':label);});

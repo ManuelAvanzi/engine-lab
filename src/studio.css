@@ -95,3 +95,18 @@ dialog.comparison-dialog{width:min(1020px,95vw);padding:30px;background:linear-g
 .comparison-dialog .text-button{color:#a1dcd9}
 @media(max-width:700px){dialog.comparison-dialog{padding:20px}.comparison-dialog .compare-grid{grid-template-columns:1fr}.comparison-dialog .dialog-header h2{font-size:22px}}
 dialog.comparison-dialog{color-scheme:dark;scrollbar-color:#557383 #142734}.brightness-control{color-scheme:dark}
+
+/* Compact controls give priority to the scene. */
+main{padding-top:14px}
+.page-heading{display:flex;align-items:center;gap:12px;margin-bottom:8px;min-height:36px}
+.page-heading>div:first-child{margin-right:auto}.page-heading h1{font-size:18px;line-height:1.2;margin:0;letter-spacing:-.5px}
+.page-heading .breadcrumb,.page-heading p{display:none}
+.page-heading .ar-open{padding:7px 10px;font-size:10px;min-height:32px;gap:6px;white-space:nowrap}.page-heading .ar-open svg{width:14px;height:14px}.ar-open .beta{display:none}
+.page-heading .studio-toolbar{margin:0;gap:0}.studio-toolbar button{min-height:32px;padding:6px 9px;font-size:10px;gap:5px}.studio-toolbar button svg{width:14px;height:14px}
+.flow-legend{padding:2px 5px;margin-bottom:8px;border-radius:6px;grid-template-columns:minmax(0,1fr) auto}
+.flow-tabs{gap:2px}.flow-tabs button{font-size:10px;padding:6px 8px}.flow-details summary{font-size:10px;padding:6px 8px}
+.viewer .brightness-control{width:34px;padding:5px 3px;right:14px;top:202px;gap:5px;background:transparent;border:0;box-shadow:none;backdrop-filter:none;opacity:.72}
+.viewer .brightness-control:hover,.viewer .brightness-control:focus-within{opacity:1}
+.brightness-control>span{gap:2px;font-size:15px;line-height:1}.brightness-control output{font-size:9px;font-weight:400}
+.viewer .brightness-control input{width:14px;height:82px}
+@media(max-width:620px){main{padding-top:10px}.page-heading{gap:6px;flex-wrap:wrap}.page-heading h1{font-size:16px}.page-heading .ar-open{font-size:9px;padding:6px}.studio-toolbar button{font-size:9px;padding:6px}.flow-tabs{flex-wrap:wrap}.flow-legend{grid-template-columns:1fr}.flow-details summary{padding:3px 8px}.viewer .brightness-control{top:202px;right:10px}}

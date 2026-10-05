@@ -26,7 +26,7 @@ export class PowertrainViewer {
   this.scene=new THREE.Scene();
   this.camera=new THREE.PerspectiveCamera(36,1,.05,100); this.renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
   this.renderer.setPixelRatio(Math.min(devicePixelRatio,2)); this.renderer.shadowMap.enabled=true; this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;
-  this.renderer.toneMapping=THREE.ACESFilmicToneMapping; this.renderer.toneMappingExposure=1.15;
+  this.renderer.toneMapping=THREE.ACESFilmicToneMapping; this.renderer.toneMappingExposure=.69;
   this.renderer.xr.enabled=true; host.append(this.renderer.domElement);
   const pmrem=new THREE.PMREMGenerator(this.renderer); const room=new RoomEnvironment(); this.environment=pmrem.fromScene(room,.04); this.scene.environment=this.environment.texture; room.dispose(); pmrem.dispose();
   this.scene.environmentIntensity=.16;const studio=createStudio(this.scene);this.stage=studio.stage;this.lights=studio.lights;
