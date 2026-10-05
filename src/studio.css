@@ -49,3 +49,7 @@
 .viewer:fullscreen .fullscreen-brand{display:block}
 .viewer:fullscreen .viewer-controls{padding-right:232px}
 @media(max-width:760px){.viewer:fullscreen .viewer-controls{height:124px;padding:12px 20px 64px}.viewer:fullscreen .fullscreen-brand{width:150px;bottom:max(10px,env(safe-area-inset-bottom));right:20px}.viewer:fullscreen .viewer-caption{bottom:135px}.viewer:fullscreen .scene-actionbar{bottom:166px}.viewer:fullscreen .cycle-panel{bottom:212px}}
+
+/* Transparent logo: white lettering and orange marks on the dark viewer. */
+.fullscreen-brand{background:transparent;padding:8px 11px;border-radius:0}
+.fullscreen-brand img{filter:invert(1) hue-rotate(180deg) brightness(1.15)}
