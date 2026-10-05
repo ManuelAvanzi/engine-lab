@@ -57,12 +57,12 @@ export class FlowAnimation{
   legend.innerHTML=`<div class="flow-tabs" aria-label="Scegli il percorso da seguire">${kinds.map((k,i)=>`<button data-flow-kind="${k}" aria-pressed="${k===this.selected}" style="--flow-color:${colors[k]}"><b>0${i+1}</b>${captions[k]}</button>`).join('')}</div><details class="flow-details" ${expanded?'open':''}><summary>Spiegazione del flusso</summary><div class="flow-lesson" style="--flow-color:${colors[this.selected]}"><div><span>${lesson[2]}</span><strong>${lesson[0]}</strong></div><p>${lesson[1]}</p></div><div id="drivetrain-readout"></div><small id="flow-status"></small></details>`;
  }
  update(step,assembled){
-  const v=this.v;if(assembled&&!this.wasAssembled)this.rebuild();this.wasAssembled=assembled;this.phase+=step;const visible=this.enabled&&assembled&&!v.isolated&&!v.xrSession;
+  const v=this.v;if(assembled&&!this.wasAssembled)this.rebuild();this.wasAssembled=assembled;this.phase+=step;const visible=this.enabled&&assembled&&!v.isolated&&!v.insideId&&!v.xrSession;
   this.group.visible=visible;
   for(const path of this.paths){path.group.visible=path.kind===this.selected;if(visible)for(const material of path.materials)material.uniforms.phase.value=this.phase*2/Math.max(1,path.length);}
   const readout=document.getElementById('drivetrain-readout');if(readout){const d=drivetrain(v.type,v.rpm),text=assembled?`${Math.round(v.rpm).toLocaleString('it-IT')} rpm motore ÷ ${d.ratio} = ${Math.round(d.wheelRpm).toLocaleString('it-IT')} rpm ruote`:'Collegamento interrotto · ruote ferme';if(readout.textContent!==text)readout.textContent=text;}
   const status=document.getElementById('flow-status');if(status){
-   const text=!this.enabled?'Flussi nascosti.':!assembled||v.isolated?'Trasmissione sospesa: ricomponi e mostra il sistema completo.':`${v.playing?'In marcia':'In pausa'} · riproduzione ${v.playbackRate}×, rallentata ${slowMotion}:1 · rapporto totale ${ratios[v.type]}:1 illustrativo, fisso. Valori rpm riferiti al modello in marcia. Scie schematiche: non indicano la velocità reale di gas o corrente.`;
+   const text=v.insideId?'Flussi sospesi durante l’ispezione del componente.':!this.enabled?'Flussi nascosti.':!assembled||v.isolated?'Trasmissione sospesa: ricomponi e mostra il sistema completo.':`${v.playing?'In marcia':'In pausa'} · riproduzione ${v.playbackRate}×, rallentata ${slowMotion}:1 · rapporto totale ${ratios[v.type]}:1 illustrativo, fisso. Valori rpm riferiti al modello in marcia. Scie schematiche: non indicano la velocità reale di gas o corrente.`;
    if(status.textContent!==text)status.textContent=text;
    status.dataset.phase=this.phase.toFixed(3);status.dataset.wheelAngle=v.wheelAngle.toFixed(3);status.dataset.active=String(visible);
   }

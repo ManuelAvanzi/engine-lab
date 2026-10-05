@@ -44,3 +44,26 @@ test('Il server risponde 404 alle risorse sconosciute e serve soltanto gli asset
  const missing=await handleRequest(new Request('https://lab.example/.env'));assert.equal(missing.status,404);
  const home=await handleRequest(new Request('https://lab.example/'),{},{'/index.html':{type:'text/html',body:'<h1>Laboratorio</h1>'}});assert.equal(home.status,200);assert.match(await home.text(),/Laboratorio/);
 });
+import * as THREE from 'three';
+import {PowertrainViewer} from '../src/model.js';
+import {addInsideDetails,insideNotes} from '../src/inside.js';
+test('Ogni parte si ispeziona e torna alla superficie senza alterare esplosione o geometria',()=>{
+ for(const type of Object.keys(systems)){
+  const v=Object.create(PowertrainViewer.prototype);
+  Object.assign(v,{type,root:new THREE.Group(),parts:{},meshes:[],pistons:[],rods:[],rotating:[],valves:[],chambers:[],section:true,insideOpacity:.16,insideId:null,selected:null,targetExplosion:.8});
+  if(type==='ev')v.electric();else{v.engine(type==='hybrid');if(type==='hybrid')v.hybrid();}
+  addInsideDetails(v);
+  for(const id of systems[type].components){
+   assert.ok(insideNotes[id]?.every(Boolean),id);
+   v.selected=id;v.paint();const rest=v.meshes.map(m=>[m.material.opacity,m.material.transparent,m.material.depthWrite,m.visible]);
+   const position=v.parts[id].position.clone();v.setInside(true);
+   assert.equal(v.parts[id].insideGroup.visible,true);
+   assert.ok(v.meshes.some(m=>m.userData.part===id&&m.material.opacity<1));
+   assert.ok(Object.entries(v.parts).every(([k,p])=>p.visible===(k===id)));
+   assert.equal(v.targetExplosion,.8);assert.ok(v.parts[id].position.equals(position));
+   assert.doesNotThrow(()=>v.root.clone(true));
+   v.setInside(false);assert.equal(v.parts[id].insideGroup.visible,false);
+   assert.deepEqual(v.meshes.map(m=>[m.material.opacity,m.material.transparent,m.material.depthWrite,m.visible]),rest);
+  }
+ }
+});

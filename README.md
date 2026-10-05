@@ -77,3 +77,7 @@ I flussi sono filamenti animati con impulsi sfumati, selezionabili singolarmente
 ## Carrozzeria a benzina
 
 Ferrari 458 Italia di vicent091036, dagli esempi ufficiali Three.js, CC BY 4.0 (crediti e fonti in src/models/credits.html). Sorgente: https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/gltf/ferrari.glb. Salvare in assets/ferrari-source.glb e rigenerare con `node scripts/prepare-vehicles.mjs ferrari`. Il decoder Draco serve soltanto durante la preparazione; il browser usa Meshopt. Ruote rettilinee con geometrie normalizzate su asse X, pinze fisse, carrozzeria X-ray. Il quattro cilindri didattico occupa il vano posteriore e trasmette coppia all'asse posteriore: non è una ricostruzione del V8 Ferrari. Tesla EV e concept ibrido invariati.
+
+## Ispezione interna dei componenti
+
+Guarda dentro è opzionale e parte disattivato. Funziona in vista composta, esplosa, con parti estratte e in isolamento. Inquadra il componente e nasconde temporaneamente gli altri, preservando posizioni ed esplosione. Il comando Torna alla superficie ripristina i materiali precedenti. Trasparenza regolabile dal 20 al 95%; spiegazione breve nel viewer e nella scheda. Dettagli schematici aggiunti a coppa, coperchio, basamento, albero motore, condotti, inverter, batteria, carter, motogeneratore e trasmissioni; gli organi già presenti vengono evidenziati negli altri assiemi. Le parti piene sono esplicitamente descritte come tali. I dettagli non sono CAD OEM. I flussi si sospendono durante l'ispezione. Vista generale chiude la modalità.
