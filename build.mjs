@@ -3,7 +3,8 @@ import { mkdir, copyFile, readFile, readdir } from 'node:fs/promises';
 await mkdir('dist', { recursive: true });
 await build({ entryPoints: ['src/app.js'], bundle: true, minify: true, sourcemap: true, outfile: 'dist/app.js', target: ['es2022'] });
 await Promise.all(['index.html', 'style.css', 'studio.css', 'favicon.svg'].map(f => copyFile(`src/${f}`, `dist/${f}`)));
-const assets={};
+await copyFile('src/carrarolab.png','dist/carrarolab.png');
+const assets={'/carrarolab.png':{body:await readFile('src/carrarolab.png','base64'),binary:true,type:'image/png'}};
 await mkdir('dist/models',{recursive:true});
 for(const file of await readdir('src/models')){
  await copyFile(`src/models/${file}`,`dist/models/${file}`);

@@ -42,3 +42,10 @@
 @media(max-width:620px){.inside-caption{bottom:191px;max-width:290px;padding:10px 12px}.inside-caption p{font-size:11px}.scene-actionbar{flex-wrap:wrap}.scene-actionbar button{font-size:9px;padding:7px}}
 .inside-controls .hover-instruction{display:flex;align-items:center;gap:8px;margin:0;font-size:11px!important;color:#5a7b6e}.hover-instruction svg{width:18px;flex:none}.inside-controls .inside-switch{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:12px;cursor:pointer}.inside-switch input{width:16px;height:16px;margin:0;accent-color:#427e6b}.inside-caption.hover-preview{pointer-events:none;border-left-color:#8ebfbd}.inside-caption.hover-preview p{font-size:11px}.inside-caption.hover-preview{max-width:310px;background:#10222ce8}.inside-controls{background:transparent;border:0;border-top:1px solid #e2eae5;padding:13px 0}
 @media(hover:none){.hover-instruction{display:none!important}.inside-controls .inside-switch{margin-top:0}.inside-switch:after{content:' · tocca';font-size:10px;color:#82968c}}
+
+/* Branding reserved for the immersive viewer. */
+.fullscreen-brand{display:none;position:absolute;right:max(24px,env(safe-area-inset-right));bottom:max(15px,env(safe-area-inset-bottom));z-index:8;width:184px;padding:8px 11px;background:#fff;border-radius:6px;pointer-events:none;line-height:0}
+.fullscreen-brand img{display:block;width:100%;height:auto}
+.viewer:fullscreen .fullscreen-brand{display:block}
+.viewer:fullscreen .viewer-controls{padding-right:232px}
+@media(max-width:760px){.viewer:fullscreen .viewer-controls{height:124px;padding:12px 20px 64px}.viewer:fullscreen .fullscreen-brand{width:150px;bottom:max(10px,env(safe-area-inset-bottom));right:20px}.viewer:fullscreen .viewer-caption{bottom:135px}.viewer:fullscreen .scene-actionbar{bottom:166px}.viewer:fullscreen .cycle-panel{bottom:212px}}
