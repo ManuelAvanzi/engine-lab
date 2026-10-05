@@ -2,7 +2,11 @@ import * as THREE from 'three';
 import {RectAreaLightUniformsLib} from 'three/addons/lights/RectAreaLightUniformsLib.js';
 
 export function createStudio(scene){
- scene.background=new THREE.Color('#080f19');scene.fog=new THREE.Fog('#080f19',23,55);
+ const backdrop=document.createElement('canvas');backdrop.width=2;backdrop.height=256;
+ const ctx=backdrop.getContext('2d'),gradient=ctx.createLinearGradient(0,0,0,256);
+ gradient.addColorStop(0,'#3b5262');gradient.addColorStop(1,'#233441');ctx.fillStyle=gradient;ctx.fillRect(0,0,2,256);
+ const background=new THREE.CanvasTexture(backdrop);background.colorSpace=THREE.SRGBColorSpace;
+ scene.background=background;scene.fog=new THREE.Fog('#293c4a',23,55);
  RectAreaLightUniformsLib.init();
  const softbox=new THREE.RectAreaLight(0xe8f1f5,2.2,9,7);softbox.position.set(1,8,5);softbox.lookAt(0,1,0);scene.add(softbox);
  scene.add(new THREE.HemisphereLight(0xa9d7ff,0x0b1020,.55));
@@ -11,7 +15,7 @@ export function createStudio(scene){
  const amber=new THREE.DirectionalLight(0xf5e5d4,.35);amber.position.set(6,4,-2);scene.add(amber);
  const fill=new THREE.DirectionalLight(0xb8cfdf,.5);fill.position.set(-3,1,8);scene.add(fill);
  const stage=new THREE.Group();scene.add(stage);
- const floor=new THREE.Mesh(new THREE.PlaneGeometry(150,150),new THREE.MeshStandardMaterial({color:0x080e18,metalness:.08,roughness:.94}));floor.rotation.x=-Math.PI/2;floor.position.y=-.39;floor.receiveShadow=true;stage.add(floor);
+ const floor=new THREE.Mesh(new THREE.PlaneGeometry(150,150),new THREE.ShadowMaterial({color:0x07121b,opacity:.24}));floor.rotation.x=-Math.PI/2;floor.position.y=-.39;floor.receiveShadow=true;stage.add(floor);
  const grid=new THREE.GridHelper(40,80,0x31546a,0x1c3448);grid.position.y=-.38;grid.material.transparent=true;grid.material.opacity=.075;stage.add(grid);
  const ring=new THREE.Mesh(new THREE.RingGeometry(4.5,4.51,120),new THREE.MeshBasicMaterial({color:0x4aa0bc,transparent:true,opacity:.10,side:THREE.DoubleSide}));ring.rotation.x=-Math.PI/2;ring.position.y=-.375;stage.add(ring);
  return {stage,lights:{key,blue,amber,fill}};

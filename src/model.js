@@ -22,11 +22,11 @@ const metal = (color, roughness=.58, metalness=.4) => new THREE.MeshStandardMate
 export class PowertrainViewer {
  constructor(host, onSelect) {
   this.host=host; this.onSelect=onSelect; this.parts={}; this.meshes=[]; this.pistons=[]; this.rods=[]; this.rotating=[];
-  this.playing=!matchMedia('(prefers-reduced-motion: reduce)').matches; this.playbackRate=3;this.insideId=null;this.hoverId=null;this.insideOpacity=.16;this.rpm=2800;this.wheelAngle=0;this.angle=0; this.explosion=0; this.targetExplosion=0; this.section=true; this.risk=false; this.isolated=false;this.carMode=true;this.dragMode=false;this.valves=[];this.chambers=[];
+  this.playing=!matchMedia('(prefers-reduced-motion: reduce)').matches; this.playbackRate=3;this.insideId=null;this.hoverId=null;this.insideOpacity=.16;this.rpm=0;this.wheelAngle=0;this.angle=0; this.explosion=0; this.targetExplosion=0; this.section=true; this.risk=false; this.isolated=false;this.carMode=true;this.dragMode=false;this.valves=[];this.chambers=[];
   this.scene=new THREE.Scene();
   this.camera=new THREE.PerspectiveCamera(36,1,.05,100); this.renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
   this.renderer.setPixelRatio(Math.min(devicePixelRatio,2)); this.renderer.shadowMap.enabled=true; this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;
-  this.renderer.toneMapping=THREE.ACESFilmicToneMapping; this.renderer.toneMappingExposure=1.04;
+  this.renderer.toneMapping=THREE.ACESFilmicToneMapping; this.renderer.toneMappingExposure=1.15;
   this.renderer.xr.enabled=true; host.append(this.renderer.domElement);
   const pmrem=new THREE.PMREMGenerator(this.renderer); const room=new RoomEnvironment(); this.environment=pmrem.fromScene(room,.04); this.scene.environment=this.environment.texture; room.dispose(); pmrem.dispose();
   this.scene.environmentIntensity=.16;const studio=createStudio(this.scene);this.stage=studio.stage;this.lights=studio.lights;

@@ -6,7 +6,7 @@ import {PowertrainViewer} from './model.js';
 const $=(s)=>document.querySelector(s);
 const icon=(name)=>`<i data-lucide="${name}"></i>`;
 const format=(n,d=0)=>new Intl.NumberFormat('it-IT',{minimumFractionDigits:d,maximumFractionDigits:d}).format(n);
-const state={type:'ice',selected:'pistons',playing:!matchMedia('(prefers-reduced-motion: reduce)').matches,section:true,risk:false,isolated:false,car:true,drag:false,explode:0,scenario:'mixed',speed:70,rpm:2800,load:50,ambient:20,cooling:true,quiz:0,answers:{}};
+const state={type:'ice',selected:'pistons',playing:!matchMedia('(prefers-reduced-motion: reduce)').matches,section:true,risk:false,isolated:false,car:true,drag:false,explode:0,scenario:'mixed',speed:0,rpm:0,load:50,ambient:20,cooling:true,quiz:0,answers:{}};
 let viewer,toastTimer,aiAvailable=false;
 function refreshIcons(){createIcons({icons,attrs:{'aria-hidden':'true'}});}
 function toast(message){$('#toast').textContent=message;$('#toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').classList.remove('show'),4500);}
@@ -89,7 +89,7 @@ selectSystem('ice');refreshIcons();
 const sceneTabs=document.createElement('div');sceneTabs.className='scene-tabs';sceneTabs.innerHTML=`<button data-action="engine-view" class="active" aria-pressed="true">${icon('component')}Propulsore</button><button data-action="car" aria-pressed="false">${icon('car-front')}Auto X-ray</button>`;$('.viewer').append(sceneTabs);
 const manipulationBar=document.createElement('div');manipulationBar.className='scene-actionbar';manipulationBar.innerHTML=`<button data-action="drag" aria-pressed="false">${icon('hand')}Sposta componenti</button><button data-action="reassemble" title="Ricomponi tutto" aria-label="Ricomponi tutto">${icon('package-check')}</button>`;$('.viewer').append(manipulationBar);
 const cyclePanel=document.createElement('div');cyclePanel.className='cycle-panel';cyclePanel.innerHTML='<span class="motion-led"></span><span id="cycle-phase">Espansione · cilindro 1</span><small>ANIMAZIONE RALLENTATA</small>';$('.viewer').append(cyclePanel);
-const speed=document.createElement('label');speed.className='speed-control road-speed-control';speed.innerHTML='<span>Velocità <output id="road-speed-value" for="road-speed">70 km/h</output></span><input id="road-speed" aria-label="Velocità del veicolo in km/h" type="range" min="0" max="100" step="1" value="70"><small>0 — 100 km/h · vista rallentata</small>';$('.animation-text').after(speed);
+const speed=document.createElement('label');speed.className='speed-control road-speed-control';speed.innerHTML='<span>Velocità <output id="road-speed-value" for="road-speed">0 km/h</output></span><input id="road-speed" aria-label="Velocità del veicolo in km/h" type="range" min="0" max="100" step="1" value="0"><small>0 — 100 km/h · vista rallentata</small>';$('.animation-text').after(speed);
 $('#road-speed').addEventListener('input',e=>{state.speed=Number(e.target.value);updateMetrics();syncToggles();});
 updateMetrics();
 
@@ -106,7 +106,7 @@ if(document.modelContext?.registerTool){
  addEventListener('pagehide',()=>lifecycle.abort(),{once:true});
 }
 
-const vehicleCard=document.createElement('div');vehicleCard.className='vehicle-card';vehicleCard.innerHTML=`<div class="vehicle-card-top"><span class="xray-dot"></span><strong id="vehicle-name">Caricamento carrozzeria…</strong><span>X-RAY</span></div><small id="vehicle-note"></small><a href="/models/credits.html" target="_blank" rel="noopener">Modelli e crediti ↗</a>`;$('.viewer').append(vehicleCard);
+const vehicleCard=document.createElement('div');vehicleCard.className='vehicle-card';vehicleCard.innerHTML=`<div class="vehicle-card-top"><span class="xray-dot"></span><strong id="vehicle-name">Caricamento carrozzeria…</strong><span>X-RAY</span></div><small id="vehicle-note"></small>`;$('.viewer').append(vehicleCard);
 
 const studioToolbar=document.createElement('div');studioToolbar.className='studio-toolbar';studioToolbar.innerHTML=`<span class="studio-toolbar-title">ESPLORAZIONE 3D</span><div><button data-action="reset-camera">${icon('car-front')}Vista generale</button><button data-action="focus-component">${icon('focus')}Inquadra componente</button><button data-action="toggle-inspector" aria-controls="inspector" aria-expanded="true" class="active">${icon('panel-right')}Scheda componente</button></div>`;$('.workspace').before(studioToolbar);
 const options=document.createElement('details');options.className='viewer-options';options.innerHTML=`<summary aria-label="Strumenti di visualizzazione">${icon('sliders-horizontal')}<span>Strumenti</span></summary>`;const existingTools=$('.view-tools');existingTools.before(options);options.append(existingTools);
@@ -120,3 +120,6 @@ $('.scene-actionbar').prepend(flowToggle);viewer?.flows.renderLegend();refreshIc
 document.addEventListener('input',e=>{if(e.target.id==='inside-opacity'&&viewer){viewer.insideOpacity=1-Number(e.target.value)/100;viewer.paint();document.getElementById('inside-opacity-value').textContent=e.target.value+'%';}});
 
 $('#canvas-host').addEventListener('part-hover',renderInsideCaption);
+
+const brightnessControl=document.createElement('label');brightnessControl.className='brightness-control';brightnessControl.innerHTML='<span>Luminosità <output id="brightness-value" for="scene-brightness">100%</output></span><input id="scene-brightness" type="range" min="60" max="160" step="5" value="100" aria-label="Luminosità della scena">';$('.viewer').append(brightnessControl);
+$('#scene-brightness').addEventListener('input',e=>{const value=Number(e.target.value);if(viewer)viewer.renderer.toneMappingExposure=1.15*value/100;$('#brightness-value').textContent=value+'%';});
