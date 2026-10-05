@@ -76,3 +76,19 @@ test('Ogni parte si ispeziona e torna alla superficie senza alterare esplosione 
   }
  }
 });
+
+import {roadMotion,wheelDiameter,speedFromRpm} from '../src/motion.js';
+test('Da 0 a 100 km/h ruote e motore mantengono velocita e rapporto coerenti',()=>{
+ for(const type of Object.keys(systems))for(const speed of [0,1,50,100]){
+  const d=roadMotion(type,speed);
+  assert.ok(Math.abs(d.wheelRpm*Math.PI*wheelDiameter/60*3.6-speed)<1e-10);
+  assert.equal(d.rpm,d.wheelRpm*ratios[type]);
+  assert.ok(Math.abs(speedFromRpm(type,d.rpm)-speed)<1e-10);
+  const step=motionStep(type,{playing:true,assembled:true,rpm:d.rpm,rate:3},.02);
+  if(!speed)assert.deepEqual(step,{engine:0,wheels:0,flow:0});
+  else assert.ok(step.wheels>0);
+  const m=simulate(type,{...base,rpm:d.rpm});assert.ok(Number.isFinite(m.torque));
+  if(!speed)assert.equal(m.power,0);
+ }
+ assert.equal(roadMotion('ice',-1).kmh,0);assert.equal(roadMotion('ev',110).kmh,100);
+});

@@ -48,8 +48,8 @@ export function simulate(type, input) {
  const consumption = type === 'ev' ? energy : energy / 8.9;
  const co2 = type === 'ev' ? 0 : consumption*23.1;
  const temperature = type === 'ev' ? 35 + load*43 + ambient*0.3 + (!cooling ? 55 : 0) : 67 + load*27 + ambient*0.4 + (!cooling ? 48 : 0);
- const power = systems[type].nominal * load * Math.min(1, normalizedRpm*2.2) * (cooling ? 1 : .72);
- return { efficiency: efficiency*100, consumption, energy, co2, temperature, power, torque: power*9550/input.rpm, recovery: recovery*100, loss: 100-efficiency*100, warning: !cooling || temperature > (type === 'ev' ? 110 : 110) };
+ const power = (input.rpm>0?1:0) * systems[type].nominal * load * Math.min(1, normalizedRpm*2.2) * (cooling ? 1 : .72);
+ return { efficiency: efficiency*100, consumption, energy, co2, temperature, power, torque: input.rpm>0?power*9550/input.rpm:0, recovery: recovery*100, loss: 100-efficiency*100, warning: !cooling || temperature > (type === 'ev' ? 110 : 110) };
 }
 export const questions = [
  { question: 'Perché il pistone è collegato all’albero motore tramite una biella?', options: ['Per convertire il moto alternativo in rotazione', 'Per abbassare la temperatura dei gas', 'Per immagazzinare energia elettrica'], correct: 0, explanation: 'Il meccanismo biella-manovella trasforma il movimento alternativo del pistone in rotazione dell’albero.' },
