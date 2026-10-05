@@ -64,3 +64,34 @@
 .brightness-control{position:absolute;top:200px;right:20px;z-index:4;display:grid;gap:10px;width:165px;padding:11px 13px;background:#132532bb;border:1px solid #54708466;border-radius:8px;color:#d0dee6;font-size:10px;backdrop-filter:blur(8px)}
 .brightness-control>span{display:flex;justify-content:space-between;gap:10px}.brightness-control output{color:#9ce9e1;font-variant-numeric:tabular-nums}.brightness-control input{width:100%;margin:0}
 @media(max-width:620px){.brightness-control{top:203px;right:14px;width:140px;padding:9px 11px}}
+
+/* Unboxed title and vertical exposure adjustment. */
+.viewer .viewer-heading{background:none;border:0;box-shadow:none;padding:0;pointer-events:none}
+.viewer .brightness-control{width:76px;right:18px;top:205px;justify-items:center;gap:10px;padding:12px 8px;background:#14293699;border-color:#7294a333;border-radius:12px}
+.brightness-control>span{display:grid;justify-items:center;gap:5px;font-size:9px}.brightness-control output{font-size:13px}
+.viewer .brightness-control input{writing-mode:vertical-lr;direction:rtl;appearance:auto;width:22px;height:115px;accent-color:#82ded5;background:transparent;cursor:ns-resize}
+@media(max-width:620px){.viewer .brightness-control{right:12px;top:190px;width:64px}.viewer .brightness-control input{height:90px}}
+/* Comparison shares the studio palette and typography. */
+dialog.comparison-dialog{width:min(1020px,95vw);padding:30px;background:linear-gradient(150deg,#304a5b,#152633 75%);border:1px solid #527080;color:#e3edf4;box-shadow:0 30px 110px #020a16aa}
+.comparison-dialog::backdrop{background:#07121bd9;backdrop-filter:blur(7px)}
+.comparison-dialog .dialog-header{border-color:#62839444;align-items:flex-start}
+.comparison-dialog .dialog-header h2{color:#f0f6f8;font-size:27px;letter-spacing:-.8px}
+.comparison-dialog .eyebrow{color:#86cdcF;letter-spacing:1.8px}
+.comparison-dialog #dialog-body{color:#b7cbd5;font-size:12px;line-height:1.7}
+.comparison-dialog .icon-button{color:#d0e1e8;background:#0f2435;border-radius:7px}
+.comparison-dialog .compare-grid{gap:16px;margin:24px 0}
+.comparison-dialog .comparison-card{display:flex;flex-direction:column;padding:22px;border:1px solid #526f7e;background:linear-gradient(160deg,#2a4353,#142734);border-radius:14px;box-shadow:0 10px 25px #07162233}
+.comparison-dialog .comparison-card>svg{color:#83ded6;width:26px;height:26px;margin-bottom:8px}
+.comparison-dialog #dialog-body h3{color:#eef7fa;font-size:18px;letter-spacing:-.3px}
+.comparison-dialog .compare-row{color:#a8c0cc;margin-top:18px;padding-top:12px;border-top:1px solid #66879829;font-size:10px}
+.comparison-dialog .compare-row strong{color:#e7f4fa;font-size:29px;font-variant-numeric:tabular-nums;line-height:1.25}
+.comparison-dialog .compare-row strong small{color:#8faebf;margin-left:6px;font-size:10px}
+.comparison-dialog .energy-flow{height:7px;background:#53616c;margin-top:12px;border-radius:8px}
+.comparison-dialog .energy-flow span{background:linear-gradient(90deg,#4fa9b8,#8be2d3)}
+.comparison-dialog .comparison-foot{color:#9bb6c4;font-size:9px}
+.comparison-dialog .primary-button{justify-content:space-between;margin-top:24px;background:#244e5b;border:1px solid #4e97a4;color:#c9f7f2;border-radius:7px}
+.comparison-dialog .primary-button:hover{background:#326777}
+.comparison-dialog .modal-note{background:#132936;border:1px solid #54778766;border-left:3px solid #75cfc9;color:#bcd2db;font-size:11px}
+.comparison-dialog .text-button{color:#a1dcd9}
+@media(max-width:700px){dialog.comparison-dialog{padding:20px}.comparison-dialog .compare-grid{grid-template-columns:1fr}.comparison-dialog .dialog-header h2{font-size:22px}}
+dialog.comparison-dialog{color-scheme:dark;scrollbar-color:#557383 #142734}.brightness-control{color-scheme:dark}
