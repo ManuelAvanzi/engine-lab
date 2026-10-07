@@ -1,3 +1,4 @@
+import {refineTechnicalEngine} from './technical-engine.js';
 import {castRim,pistonShell,addFinishDetails} from './geometry-detail.js';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -48,10 +49,10 @@ export class PowertrainViewer {
  ring(g,r,t,pos,color,axis='y'){const rot=axis==='y'?[Math.PI/2,0,0]:axis==='x'?[0,Math.PI/2,0]:[0,0,0];return this.mesh(g,new THREE.TorusGeometry(r,t,10,48),color,pos,rot);}
  tube(g,points,r,color){const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));return this.mesh(g,new THREE.TubeGeometry(curve,24,r,12,false),color);}
  bolts(g,positions){positions.forEach(p=>this.cylinder(g,.06,.055,p,'#71818a'));}
- clear(){this.root.traverse(o=>{o.geometry?.dispose();if(o.material)o.material.dispose();});this.root.clear();this.parts={};this.meshes=[];this.pistons=[];this.rods=[];this.rotating=[];this.valves=[];this.chambers=[];this.crankRotor=null;this.rotorGroup=null;}
+ clear(){this.root.traverse(o=>{o.geometry?.dispose();if(o.material)o.material.dispose();});this.root.clear();this.parts={};this.meshes=[];this.pistons=[];this.rods=[];this.rotating=[];this.valves=[];this.chambers=[];this.crankRotor=null;this.rotorGroup=null;this.camshafts=[];this.timingWheels=[];}
  build(type){this.setHover(null);this.clear();this.type=type;this.root.position.set(0,0,0);this.root.scale.setScalar(1);this.explosion=this.targetExplosion=0;this.isolated=false;
   if(type==='ev')this.electric();else{this.engine(type==='hybrid');if(type==='hybrid')this.hybrid();}
-  this.insideId=null;addInsideDetails(this);this.updateVehicle(type);addMachining(this);addFinishDetails(this);this.selected=type==='ev'?'rotor':'pistons';this.setCar(this.carMode);this.paint();this.presentation?.rebuild();this.resize();this.resetCamera();
+  this.insideId=null;this.updateVehicle(type);addMachining(this);addFinishDetails(this);refineTechnicalEngine(this);addInsideDetails(this);this.selected=type==='ev'?'rotor':'pistons';this.setCar(this.carMode);this.paint();this.presentation?.rebuild();this.resize();this.resetCamera();
  }
  engine(hybrid){
   const xs=[-1.38,-.46,.46,1.38];
@@ -68,7 +69,7 @@ export class PowertrainViewer {
    const piston=new THREE.Group();piston.userData.part='pistons';pistons.add(piston);piston.position.x=x;
    this.mesh(piston,pistonShell(),'#c8d0d0');this.cylinder(piston,.32,.018,[0,.218,0],'#dbe0d8');
    [-.1,.03,.13].forEach(y=>this.ring(piston,.346,.013,[0,y,0],'#5f7078'));
-   this.cylinder(piston,.09,.68,[0,-.08,0],'#8c999c','z');this.pistons.push({g:piston,index:i,x});
+   this.cylinder(piston,.09,.68,[0,-.08,0],'#8c999c','x');this.pistons.push({g:piston,index:i,x});
    const rod=new THREE.Group();rod.userData.part='rods';rods.add(rod);const shaft=this.box(rod,[.14,.92,.115],[0,0,0],'#acb5b7');this.box(rod,[.04,.85,.145],[0,0,0],'#829297');
    this.ring(rod,.105,.035,[0,.46,0],'#b6c1c2','z');this.ring(rod,.155,.065,[0,-.46,0],'#8c9a9e','z');this.rods.push({g:rod,index:i,x,shaft});
    const phase=i===0||i===3?0:Math.PI;const z=Math.sin(phase)*.3, y=.43+Math.cos(phase)*.3;
@@ -175,6 +176,7 @@ export class PowertrainViewer {
   // Rotate crank geometry around its own shaft centre.
   if(this.crankRotor){this.crankRotor.rotation.x=this.angle;this.crankRotor.position.set(0,.43*(1-Math.cos(this.angle)),-.43*Math.sin(this.angle));}
   this.rotating.forEach(g=>g.rotation.x=this.angle);
+  this.camshafts?.forEach(g=>g.rotation.x=this.angle*.5);this.timingWheels?.forEach(({g,ratio})=>g.rotation.x=this.angle*ratio);
   const phases=[0,Math.PI*3,Math.PI,Math.PI*2];
   this.valves.forEach(({g,index,side})=>{const phase=(this.angle+phases[index])%(Math.PI*4);const centre=side===0?Math.PI*2.5:Math.PI*1.5;g.position.y=-.15*Math.max(0,1-Math.abs(phase-centre)/(Math.PI*.48));});
   this.chambers.forEach(({g,index})=>{const phase=(this.angle+phases[index])%(Math.PI*4);const expansion=phase<Math.PI;g.material.color.set(expansion?'#ff7b26':phase>Math.PI*2&&phase<Math.PI*3?'#36bdf1':'#d94237');g.material.emissive.copy(g.material.color);g.material.opacity=this.section&&!this.isolated&&!this.parts.pistons.userData.detached&&this.explosion<.1?(expansion?.55*Math.exp(-phase*.7):.09):0;g.scale.y=1+Math.max(0,Math.sin(phase))*.9;});

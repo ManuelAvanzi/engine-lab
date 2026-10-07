@@ -1,0 +1,13 @@
+import {readFile,stat} from 'node:fs/promises';
+import {PLYLoader} from 'three/addons/loaders/PLYLoader.js';
+import {Document,NodeIO} from '@gltf-transform/core';
+import {ALL_EXTENSIONS} from '@gltf-transform/extensions';
+import {weld,simplify,prune,meshopt} from '@gltf-transform/functions';
+import {MeshoptSimplifier,MeshoptEncoder} from 'meshoptimizer';
+await Promise.all([MeshoptSimplifier.ready,MeshoptEncoder.ready]);
+const bytes=await readFile('assets/technical/four-cylinder-engine.ply');const g=new PLYLoader().parse(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength));
+g.computeBoundingBox();console.log('source',g.attributes.position.count,g.index?.count,g.boundingBox.min.toArray(),g.boundingBox.max.toArray());
+const d=new Document(),b=d.createBuffer();const prim=d.createPrimitive().setAttribute('POSITION',d.createAccessor().setType('VEC3').setArray(g.attributes.position.array).setBuffer(b));if(g.index)prim.setIndices(d.createAccessor().setType('SCALAR').setArray(g.index.array).setBuffer(b));if(g.attributes.normal)prim.setAttribute('NORMAL',d.createAccessor().setType('VEC3').setArray(g.attributes.normal.array).setBuffer(b));
+prim.setMaterial(d.createMaterial('Scanned cast metal').setBaseColorFactor([.48,.53,.56,1]).setMetallicFactor(.35).setRoughnessFactor(.65));const mesh=d.createMesh('Artec four-cylinder engine scan').addPrimitive(prim);d.createScene().addChild(d.createNode().setMesh(mesh));
+d.getRoot().setExtras({title:'Four-cylinder engine',author:'Artec 3D',license:'CC BY 4.0',source:'https://www.artec3d.com/3d-models/four-cylinder-engine',changes:'Decimated and compressed; neutral material; original dimensions retained.'});
+await d.transform(weld(),simplify({simplifier:MeshoptSimplifier,ratio:.075,error:.001}),prune(),meshopt({encoder:MeshoptEncoder,level:'medium'}));const io=new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({'meshopt.encoder':MeshoptEncoder});await io.write('src/models/engine-scan.glb',d);console.log('output bytes',(await stat('src/models/engine-scan.glb')).size);

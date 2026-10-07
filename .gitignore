@@ -6,3 +6,5 @@ test-results/
 
 assets/*-source.glb
 assets/*-reference.txt
+
+assets/technical/

@@ -1,3 +1,4 @@
+import {refineTechnicalEngine} from '../src/technical-engine.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {simulate,systems,scenarios} from '../src/data.js';
@@ -52,6 +53,8 @@ test('Ogni parte si ispeziona e torna alla superficie senza alterare esplosione 
   const v=Object.create(PowertrainViewer.prototype);
   Object.assign(v,{type,root:new THREE.Group(),parts:{},meshes:[],pistons:[],rods:[],rotating:[],valves:[],chambers:[],section:true,insideOpacity:.16,insideId:null,selected:null,targetExplosion:.8});
   if(type==='ev')v.electric();else{v.engine(type==='hybrid');if(type==='hybrid')v.hybrid();}
+  refineTechnicalEngine(v);
+  if(type==='ice'){assert.equal(v.camshafts.length,2);assert.equal(v.valves.length,8);assert.deepEqual(v.timingWheels.map(w=>w.ratio),[1,.5,.5]);}
   addInsideDetails(v);
   for(const id of systems[type].components){
    assert.ok(insideNotes[id]?.every(Boolean),id);

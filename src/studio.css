@@ -110,3 +110,7 @@ main{padding-top:14px}
 .brightness-control>span{gap:2px;font-size:15px;line-height:1}.brightness-control output{font-size:9px;font-weight:400}
 .viewer .brightness-control input{width:14px;height:82px}
 @media(max-width:620px){main{padding-top:10px}.page-heading{gap:6px;flex-wrap:wrap}.page-heading h1{font-size:16px}.page-heading .ar-open{font-size:9px;padding:6px}.studio-toolbar button{font-size:9px;padding:6px}.flow-tabs{flex-wrap:wrap}.flow-legend{grid-template-columns:1fr}.flow-details summary{padding:3px 8px}.viewer .brightness-control{top:202px;right:10px}}
+
+.technical-scan-button{display:flex;gap:6px;align-items:center;padding:7px 10px;border:1px solid #adc5c6;border-radius:6px;background:#e4f0f0;color:#345c63;font-size:10px;white-space:nowrap}.technical-scan-button svg{width:14px;height:14px}
+dialog.scan-dialog{width:min(1100px,96vw);background:#172d3b;color:#e4edf2;border:1px solid #507382;color-scheme:dark}.scan-dialog #dialog-body{color:#b8ced9}.scan-dialog .dialog-header{border-color:#42616f}.scan-dialog .dialog-header h2{color:#eef7fc}.scan-dialog .eyebrow{color:#88d6d3}
+#scan-host{height:min(57vh,600px);min-height:300px;position:relative;border-radius:10px;overflow:hidden;background:#243b4a}#scan-host canvas{display:block;touch-action:none}.scan-status{position:absolute;inset:45% 10%;text-align:center;font-size:13px;pointer-events:none}.scan-credit{font-size:10px!important}.scan-credit a{color:#a2e9e2!important}.scan-dialog .icon-button{color:#e3f2f8}
