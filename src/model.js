@@ -88,7 +88,7 @@ export class PowertrainViewer {
  }
 
  // Reserve the component rail in the camera frustum while keeping a seamless full-width backdrop.
- resize(){const {width,height}=this.host.getBoundingClientRect();if(!width||!height)return;const rail=Math.min(width*.4,parseFloat(getComputedStyle(this.host.parentElement).getPropertyValue('--component-rail'))||0);this.camera.setViewOffset(width-rail,height,-rail,0,width,height);this.sceneWidth=width-rail;const fit=Math.max(1,1.15/this.camera.aspect);if(this.controls&&!this.xrSession){const scale=fit/(this.aspectFit||1);const rescale=(position,target)=>position.sub(target).multiplyScalar(scale).add(target);rescale(this.camera.position,this.controls.target);const tween=this.presentation?.tween;if(tween){rescale(tween.from,tween.look);rescale(tween.position,tween.target);}}this.aspectFit=fit;this.camera.updateProjectionMatrix();this.renderer.setSize(width,height);this.composer?.setSize(width,height);}
+ resize(){const {width,height}=this.host.getBoundingClientRect();if(!width||!height)return;const rail=Math.min(width*.4,parseFloat(getComputedStyle(this.host.parentElement).getPropertyValue('--component-rail'))||0);const bottom=Math.min(height*.26,this.livePanelSpace||0);this.camera.setViewOffset(width-rail,height-bottom,-rail,0,width,height);this.sceneWidth=width-rail;const fit=Math.max(1,1.15/this.camera.aspect);if(this.controls&&!this.xrSession){const scale=fit/(this.aspectFit||1);const rescale=(position,target)=>position.sub(target).multiplyScalar(scale).add(target);rescale(this.camera.position,this.controls.target);const tween=this.presentation?.tween;if(tween){rescale(tween.from,tween.look);rescale(tween.position,tween.target);}}this.aspectFit=fit;this.camera.updateProjectionMatrix();this.renderer.setSize(width,height);this.composer?.setSize(width,height);}
 
  resetCamera(){const fit=Math.max(1,1.15/this.camera.aspect),spread=Object.values(this.parts).some(p=>p.userData.detached);const target=new THREE.Vector3(0,this.carMode?1.15:1.38+1.1*(this.targetExplosion||0)+(spread?.55:0),this.carMode?1:0);const position=new THREE.Vector3(...(this.carMode?(this.type==='ev'?[11,7.3,-14]:[11,7.3,14]):[5.7,3.1,7.4])).multiplyScalar(fit*(1+.4*(this.targetExplosion||0))*(spread?1.22:1)).add(target);this.aspectFit=fit;if(this.presentation){this.presentation.setFocused(false);this.presentation.move(position,target);}else{this.controls.target.copy(target);this.camera.position.copy(position);this.controls.update();}}
 
@@ -342,6 +342,7 @@ export class PowertrainViewer {
 
   const assembled=this.explosion<.02&&this.targetExplosion===0&&Object.values(this.parts).every(p=>!p.userData.detached&&p.userData.manualOffset.lengthSq()<.0001&&p.position.distanceToSquared(p.userData.origin||new THREE.Vector3())<.0025);
 
+  this.drivetrainAssembled=assembled;
   const step=motionStep(this.type||'ice',{playing:this.playing,assembled,rpm:this.rpm,rate:this.playbackRate},document.hidden?0:elapsed);this.angle+=step.engine;this.wheelAngle+=step.wheels;
 
   const wheelOutput=document.getElementById('wheel-rpm-readout');if(wheelOutput){const text=rpmFormat.format(assembled?roadMotion(this.type||'ice',this.roadSpeed||0).wheelRpm:0)+' rpm';if(wheelOutput.textContent!==text)wheelOutput.textContent=text;}
@@ -376,7 +377,7 @@ export class PowertrainViewer {
 
 
 
-  const phaseLabel=document.getElementById('cycle-phase');if(phaseLabel){const phase=(this.angle%(Math.PI*4))/(Math.PI);const names=['Espansione','Scarico','Aspirazione','Compressione'];const text=this.rpm===0?'Veicolo fermo · propulsore arrestato':this.type==='ev'?'Campo rotante · rotore in movimento':`${names[Math.floor(phase)]} · cilindro 1`;if(phaseLabel.textContent!==text)phaseLabel.textContent=text;phaseLabel.dataset.phase=this.angle.toFixed(2);}
+
 
   if(this.xrSession&&frame&&this.hitSource){const hits=frame.getHitTestResults(this.hitSource);this.reticle.visible=hits.length>0;if(hits.length){const pose=hits[0].getPose(this.renderer.xr.getReferenceSpace());this.reticle.matrix.fromArray(pose.transform.matrix);}}
 

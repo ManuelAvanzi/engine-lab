@@ -82,6 +82,36 @@ test('Ogni parte si ispeziona e torna alla superficie senza alterare esplosione 
 });
 
 import {roadMotion,wheelDiameter,speedFromRpm} from '../src/motion.js';
+import {LiveSimulation} from '../src/live-simulation.js';
+import {co2PerLiter} from '../src/data.js';
+test('Prova in marcia: bilanci di carburante, CO2 e distanza indipendenti dalla frequenza di aggiornamento',()=>{
+ for(const type of Object.keys(systems)){
+  const input={...base,type,speed:60,playing:true,assembled:true};
+  const coarse=new LiveSimulation(type,20),fine=new LiveSimulation(type,20);
+  const a=coarse.step(input,600);let b;for(let i=0;i<2400;i++)b=fine.step(input,.25);
+  for(const key of ['distance','fuel','energy','co2','temperature'])assert.ok(Math.abs(a[key]-b[key])<1e-8,`${type} ${key}`);
+  assert.ok(Math.abs(a.distance-10)<1e-10);assert.ok(a.temperature>70||type==='ev');
+  if(type==='ev'){assert.equal(a.fuel,0);assert.equal(a.co2,0);assert.ok(a.energy>0);}
+  else{assert.ok(Math.abs(a.energy-a.fuel*8.9)<1e-10);assert.ok(Math.abs(a.co2-a.fuel*co2PerLiter*1000)<1e-8);assert.ok(Math.abs(a.per100*a.kmPerLiter-100)<1e-10);}
+ }
+});
+test('Pausa, scheda nascosta e trasmissione separata fermano i totali; zero km/h non consuma',()=>{
+ const sim=new LiveSimulation('ice',20),input={...base,type:'ice',speed:50,playing:true,assembled:true};
+ const first=sim.step(input,30);
+ for(const stop of [{playing:false},{hidden:true},{assembled:false},{speed:0}]){
+  const next=sim.step({...input,...stop},60);for(const key of ['distance','fuel','energy','co2','seconds'])assert.equal(next[key],first[key]);assert.equal(next.inputKw,0);
+ }
+ const changed=sim.step({...input,type:'ev'},0);assert.equal(changed.distance,0);assert.equal(changed.energy,0);
+ sim.reset('ice',25);assert.equal(sim.temperature,25);assert.equal(sim.seconds,0);
+});
+test('Velocita, sforzo, riscaldamento e raffreddamento cambiano i parametri in modo esplicabile',()=>{
+ const input={...base,type:'ice',speed:50,playing:true,assembled:true};
+ const run=(overrides={})=>new LiveSimulation('ice',20).step({...input,...overrides},30);
+ assert.ok(run({speed:100}).litersHour>run().litersHour);assert.ok(run({load:90}).powerKw>run({load:10}).powerKw);
+ assert.ok(run({cooling:false}).temperature>run().temperature);
+ const sim=new LiveSimulation('ice',20),cold=sim.step(input,0),warm=sim.step(input,600);assert.ok(warm.per100<cold.per100);assert.ok(warm.temperature>cold.temperature);
+ assert.equal(sim.step({...input,speed:0},0).kmPerLiter,null);
+});
 test('La rotazione segue il tempo trascorso anche a 10 fps, in tempo reale e al rallentatore',()=>{
  const cadences=[Array(60).fill(1/60),Array(30).fill(1/30),Array(10).fill(.1),[.01,.19,.07,.03,.4,.3]];
  for(const type of Object.keys(ratios))for(const speed of [0,50,100])for(const rate of [3,100])for(const frames of cadences){

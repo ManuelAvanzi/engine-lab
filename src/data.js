@@ -31,6 +31,7 @@ export const scenarios = {
  highway: { name: 'Autostrada', speed: 120, demand: 21, rpm: 3800, load: 70, ambient: 25 },
  climb: { name: 'Salita impegnativa', speed: 50, demand: 30, rpm: 4500, load: 90, ambient: 35 }
 };
+export const co2PerLiter = 2.35; // kg/L, rounded from EPA 8.887 kg per US gallon.
 const clamp = (n, a, b) => Math.min(b, Math.max(a,n));
 export function simulate(type, input) {
  const s = scenarios[input.scenario] || scenarios.mixed;
@@ -41,12 +42,15 @@ export function simulate(type, input) {
  const thermalPenalty = !cooling ? 0.07 : Math.max(0, ambient-30)*0.001;
  let efficiency = type === 'ev' ? 0.92 - 0.10*(load-0.6)**2 - 0.05*normalizedRpm - thermalPenalty : type === 'hybrid' ? 0.35 + 0.04*load - 0.04*(normalizedRpm-0.5)**2 - thermalPenalty : 0.22 + 0.13*load - 0.08*(normalizedRpm-0.5)**2 - thermalPenalty;
  efficiency = clamp(efficiency, 0.14, 0.95);
- const wheelEnergy = s.demand * (0.75+load*0.5) * (1+Math.max(0,20-ambient)*0.004);
+ const speed=clamp(Number(input.speed ?? Math.min(100,s.speed))||0,0,100);
+ const referenceSpeed=Math.min(100,s.speed);
+ const speedFactor=(.55+.45*(speed/70)**2)/(.55+.45*(referenceSpeed/70)**2);
+ const wheelEnergy = speedFactor * s.demand * (0.75+load*0.5) * (1+Math.max(0,20-ambient)*0.004);
  // Recupero incorporato soltanto nella domanda netta dei cicli con decelerazioni.
  const recovery = type === 'ice' ? 0 : input.scenario === 'city' ? 0.20 : input.scenario === 'mixed' ? 0.08 : 0.02;
  const energy = wheelEnergy * (1-recovery) / efficiency;
  const consumption = type === 'ev' ? energy : energy / 8.9;
- const co2 = type === 'ev' ? 0 : consumption*23.1;
+ const co2 = type === 'ev' ? 0 : consumption*co2PerLiter*10;
  const temperature = type === 'ev' ? 35 + load*43 + ambient*0.3 + (!cooling ? 55 : 0) : 67 + load*27 + ambient*0.4 + (!cooling ? 48 : 0);
  const power = (input.rpm>0?1:0) * systems[type].nominal * load * Math.min(1, normalizedRpm*2.2) * (cooling ? 1 : .72);
  return { efficiency: efficiency*100, consumption, energy, co2, temperature, power, torque: input.rpm>0?power*9550/input.rpm:0, recovery: recovery*100, loss: 100-efficiency*100, warning: !cooling || temperature > (type === 'ev' ? 110 : 110) };

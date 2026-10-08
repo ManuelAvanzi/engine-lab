@@ -112,3 +112,14 @@ Le tavole sono SVG accessibili originali. Riferimenti funzionali: https://www.bo
 - Cinematica indipendente dal frame rate: il tempo trascorso non viene più tagliato a 50 ms. I passaggi fra schede sospendono il tempo visualizzato, evitando salti al ritorno.
 - Rallentatore predefinito al 3%, esplicito nel viewer; pulsante Tempo reale per scala temporale 1:1. Lo slider imposta sempre la velocità reale convenzionale e il rapporto motore/ruote rimane lo stesso. A 100 km/h: circa 816 rpm ruote e 4081/4897/7346 rpm motore (benzina/ibrido/elettrico).
 - 14 test automatici, inclusa regressione con 10/30/60 fps e intervalli irregolari, velocità 0/50/100 e entrambe le scale temporali. Verifica nel browser: 487,06 rad alle ruote in 5,699 s a 100 km/h in tempo reale, coerenti con 85,47 rad/s attesi.
+
+
+## Parametri in marcia e schede leggibili
+
+- Pannello nel viewer, anche a schermo intero: L/100 km e km/L per benzina/ibrido, kWh/100 km per EV, CO₂ allo scarico in g/s e g/km, temperatura progressiva. Aprendo i dettagli: portata oraria, potenza utile alle ruote, rendimento, litri/kWh totali, CO₂ totale, distanza e durata della prova. Controlli di carico, percorso e azzeramento inclusi.
+- La velocità influisce sulla domanda energetica con una curva illustrativa, normalizzata allo scenario: `(0.55 + 0.45 × (v/70)²) / (0.55 + 0.45 × (v_riferimento/70)²)`. Nessun modello di accelerazione, inerzia o cambi marcia. L'ibrido mantiene l'ipotesi di ciclo medio a batteria neutra del confronto.
+- Riscaldamento esponenziale verso la temperatura a regime (90 s), raffreddamento verso l'ambiente (180 s); penalità di consumo a freddo fino al 15%, nulla sopra 70 °C. Costanti illustrative. Le temperature di refrigerante e avvolgimenti non misurano lo stesso componente.
+- Totali integrati sul tempo effettivo della prova, indipendenti dal rallentatore visivo. Pausa, scheda browser nascosta e trasmissione separata sospendono l'integrazione. A 0 km/h propulsore spento e consumo nullo; nessun minimo simulato. Il cambio di propulsore e Azzera prova azzerano contatori e temperatura.
+- CO₂: 2,35 kg per litro di benzina, arrotondamento di 8.887 g per gallone USA ([EPA](https://www.epa.gov/greenvehicles/comparison-your-car-vs-electric-vehicle)). EV a zero emissioni allo scarico; produzione elettrica e ciclo di vita esclusi. CO, NOx e idrocarburi non quantificati: richiedono modelli di combustione e post-trattamento assenti.
+- Tavole su fondo avorio, linee e numeri contrastati, spiegazione A cosa serve e tre punti in linguaggio semplice. Nomi tecnici opzionali e schema ingrandibile. Rimossa la scritta di fase del cilindro 1 dal viewer.
+- 17 test automatici, inclusi bilancio carburante/energia/CO₂, indipendenza dal passo temporale della temperatura e dei totali, pausa/zero/disconnessione, cambio modello e risposta a carico/velocità/raffreddamento.

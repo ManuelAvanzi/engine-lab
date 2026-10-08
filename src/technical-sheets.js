@@ -1,4 +1,5 @@
 import {components} from './data.js';
+import {componentGuides} from './component-guides.js';
 
 // Original vector plates: deliberately sectional and schematic, never OEM drawings.
 const rect=(x,y,w,h,r=3,fill='url(#metal)')=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${fill}"/>`;
@@ -35,13 +36,14 @@ const plates={
 export const sheetIds=Object.keys(plates);
 export function technicalSvg(id){
  const p=plates[id];if(!p)return '';
- const defs=`<defs><linearGradient id="metal" x2="1" y2="1"><stop stop-color="#9dafb9"/><stop offset=".5" stop-color="#577888"/><stop offset="1" stop-color="#8cabb8"/></linearGradient><pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#9fc8d0" stroke-opacity=".07"/></pattern></defs>`;
- const annotations=p.labels.map(([label,x,y],i)=>{const left=i!==1,endX=left?109:391,endY=[49,147,257][i];return line(x,y,endX,endY,'#8ab2c0',1)+circle(x,y,3,'#8de0d7')+circle(endX,endY,11,'#193a49')+`<text x="${endX}" y="${endY+4}" text-anchor="middle" fill="#a1eee2" font-size="12" font-weight="600">${i+1}</text>`;}).join('');
- return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 300" role="img" aria-label="${components[id].name}: ${p.labels.map(l=>l[0]).join(', ')}"><title>${components[id].name} — ${p.view}</title>${defs}<rect width="500" height="300" fill="#142b3b"/><rect width="500" height="300" fill="url(#grid)"/><path d="M250 30V276M115 150H387" stroke="#6792a5" opacity=".2" stroke-dasharray="5 5"/><g stroke="#a5bec9" stroke-width="1.1">${p.draw()}</g>${annotations}<text x="18" y="24" fill="#7fa6b8" font-size="9" font-family="sans-serif" letter-spacing="1.5">${p.view.toUpperCase()}</text><text x="482" y="284" text-anchor="end" fill="#7696a6" font-size="8" font-family="sans-serif">SCHEMA DIDATTICO · NON IN SCALA</text></svg>`.replaceAll('id="metal"',`id="metal-${id}"`).replaceAll('url(#metal)',`url(#metal-${id})`).replaceAll('id="grid"',`id="grid-${id}"`).replaceAll('url(#grid)',`url(#grid-${id})`);
+ const defs=`<defs><linearGradient id="metal" x2="1" y2="1"><stop stop-color="#e4e9e6"/><stop offset=".5" stop-color="#a8b6b9"/><stop offset="1" stop-color="#d2dcd9"/></linearGradient></defs>`;
+ const colors=['#bb4e12','#2564a3','#7250a4'];
+ const annotations=p.labels.map(([label,x,y],i)=>{const left=i!==1,endX=left?92:409,endY=[55,144,243][i],color=colors[i];return line(x,y,endX,endY,color,2.5)+circle(x,y,4,color)+circle(endX,endY,17,color)+`<text x="${endX}" y="${endY+7}" text-anchor="middle" fill="white" font-size="21" font-weight="700">${i+1}</text>`;}).join('');
+ const drawing=p.draw().replaceAll('#142b3b','#fffdf6').replaceAll('#72e1d5','#087d72').replaceAll('#73d7d0','#087d72').replaceAll('#69dfd4','#087d72').replaceAll('#68d4d0','#087d72').replaceAll('#70d9d2','#087d72').replaceAll('#74d6d2','#087d72').replaceAll('#63d8d4','#087d72').replaceAll('#6cd7d3','#087d72').replaceAll('#77d0d0','#087d72').replaceAll('#72d4d0','#087d72');
+ return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="70 28 360 242" role="img" aria-label="${components[id].name}: ${componentGuides[id].labels.join(', ')}"><title>${components[id].name} — ${p.view}</title>${defs}<rect width="500" height="290" fill="#fffdf6"/><path d="M250 40V262M120 150H380" stroke="#b5bfbb" stroke-dasharray="5 5"/><g stroke="#455962" stroke-width="1.8">${drawing}</g>${annotations}</svg>`.replaceAll('id="metal"',`id="metal-${id}"`).replaceAll('url(#metal)',`url(#metal-${id})`);
 }
 export function technicalFigure(id,{large=false}={}){
- const p=plates[id];if(!p)return '';
- // Data URI isolates gradient IDs when the same plate occurs in two panels.
- const image=`<img src="data:image/svg+xml;charset=utf-8,${encodeURIComponent(technicalSvg(id))}" alt="${components[id].name}, ${p.view.toLowerCase()}" width="500" height="300">`;
- return `<figure class="technical-figure ${large?'large':''}">${large?image:`<button data-action="technical-plate" aria-label="Ingrandisci il disegno tecnico: ${components[id].name}">${image}<span>Apri tavola ↗</span></button>`}<figcaption><ol>${p.labels.map(([label])=>`<li>${label}</li>`).join('')}</ol><p>${p.note}</p></figcaption></figure>`;
+ const p=plates[id],guide=componentGuides[id];if(!p||!guide)return '';
+ const image=`<img src="data:image/svg+xml;charset=utf-8,${encodeURIComponent(technicalSvg(id))}" alt="${components[id].name}, ${p.view.toLowerCase()}" width="360" height="242">`;
+ return `<figure class="technical-figure ${large?'large':''}"><div class="component-purpose"><b>A cosa serve</b><p>${guide.purpose}</p></div>${large?image:`<button data-action="technical-plate" aria-label="Ingrandisci il disegno tecnico: ${components[id].name}">${image}<span>Ingrandisci lo schema ↗</span></button>`}<figcaption><b class="reading-key">Segui i numeri nel disegno</b><ol>${guide.labels.map(label=>`<li>${label}</li>`).join('')}</ol><details class="technical-vocabulary"><summary>I nomi tecnici</summary><p>${p.labels.map(([label],i)=>`${i+1}. ${label}`).join('<br>')}</p><p>${p.note}</p></details></figcaption></figure>`;
 }
