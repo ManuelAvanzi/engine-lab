@@ -1,0 +1,12 @@
+import {createClient} from './vendor/supabase.js';
+import {SUPABASE_URL,SUPABASE_KEY} from './cloud-config.js';
+import {validateProject} from './project-document.js';
+export const cloud=createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{storageKey:'enginelab-auth-v1',persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
+export const escapeHTML=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+export function message(e){if(e?.code==='invalid_credentials')return 'Nome utente o password non corretti.';if(e?.code==='P0001')return 'Questa prova è cambiata in un’altra scheda. Riapri la versione online oppure salva una nuova copia.';if(e?.status===429)return 'Troppi tentativi. Attendi qualche minuto e riprova.';return e?.message?.startsWith('EngineLab: ')?e.message.slice(11):'Operazione non riuscita. Controlla la connessione e riprova.';}
+export async function currentUser(){const {data,error}=await cloud.auth.getUser();if(error){if(error.name==='AuthSessionMissingError')return null;throw error;}return data.user;}
+async function requireUser(){const user=await currentUser();if(!user)throw Error('EngineLab: Accedi per aprire e salvare le tue prove.');return user;}
+export async function listProjects(){await requireUser();const {data,error}=await cloud.from('engine_projects').select('id,name,revision,updated_at,document').order('updated_at',{ascending:false});if(error)throw error;return data;}
+export async function loadProject(id){const user=await requireUser();const {data,error}=await cloud.from('engine_projects').select('*').eq('id',id).single();if(error)throw Error('EngineLab: Prova non disponibile per questo account.');return {project:validateProject(data.document),binding:{id:data.id,revision:data.revision,owner:user.id}};}
+export async function saveProject(project,binding){const user=await requireUser();if(binding&&binding.owner!==user.id)throw Error('EngineLab: Accedi con l’account proprietario oppure salva una nuova copia.');const document=validateProject(project),id=binding?.id||crypto.randomUUID();const {data,error}=await cloud.rpc('save_engine_project',{project_id:id,expected_revision:binding?.revision||0,project_document:document});if(error)throw error;return {id,revision:data,owner:user.id};}
+export function refreshAccess(){return currentUser().then(user=>{document.querySelectorAll('[data-access]').forEach(a=>{a.textContent=user?'Area personale':'Accedi all’area personale';});return user;}).catch(()=>null);}

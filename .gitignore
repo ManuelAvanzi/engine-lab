@@ -8,3 +8,9 @@ assets/*-source.glb
 assets/*-reference.txt
 
 assets/technical/
+
+.vercel/
+.env.local
+
+.vercel
+.env*

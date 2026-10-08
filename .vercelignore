@@ -1,0 +1,9 @@
+.git
+.openai
+.sites-runtime
+dist
+assets
+tools
+test-results
+*.tar.gz
+.env*

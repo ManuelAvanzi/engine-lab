@@ -1,3 +1,5 @@
+import {refreshAccess} from './cloud.js';
+refreshAccess();
 import {createIcons,Cog,ArrowUpRight,Play,Menu,MonitorSmartphone} from 'lucide';
 createIcons({icons:{Cog,ArrowUpRight,Play,Menu,MonitorSmartphone},attrs:{'stroke-width':1.65,'aria-hidden':'true'}});
 document.querySelector('#year').textContent=new Date().getFullYear();

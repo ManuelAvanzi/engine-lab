@@ -173,3 +173,5 @@ html{scroll-behavior:smooth}.site-header .logo b{font:inherit}.site-header .logo
 @media(max-width:760px){.landing-page .site-footer{width:calc(100% - 40px)}}
 
 @media(max-width:800px){.hero-scenes picture:first-child img{object-position:78% center}}
+
+.nav-actions .login-link{font-size:12px;font-weight:600;padding:12px 16px;border:1px solid #cdd9cc;border-radius:7px;color:#294d40;white-space:nowrap}.nav-actions .login-link:hover{background:#eef3e8}@media(max-width:760px){.nav-actions .entry-link{display:none}.nav-actions .login-link{padding:10px;font-size:11px}}
