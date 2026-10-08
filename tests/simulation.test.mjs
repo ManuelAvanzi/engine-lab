@@ -17,6 +17,20 @@ test('La home e il laboratorio hanno route distinte; i link ai propulsori conser
  assert.equal((await handleRequest(new Request('https://lab.example/missing'),{},assets)).status,404);
 });
 const base={scenario:'mixed',rpm:2800,load:50,ambient:20,cooling:true};
+test('I dati istantanei rispettano le conversioni di consumo, CO2 e potenza da 1 a 100 km/h',()=>{
+ for(const type of Object.keys(systems))for(const scenario of Object.keys(scenarios))for(const speed of [1,38,50,100])for(const elapsed of [0,33,600]){
+  const m=new LiveSimulation(type,20).step({...base,type,scenario,speed,playing:true,assembled:true},elapsed);
+  const rate=m.per100*speed/100;
+  assert.ok(Math.abs((type==='ev'?m.inputKw:m.litersHour)-rate)<1e-10);
+  assert.ok(Math.abs(m.powerKw-m.inputKw*m.efficiency/100)<1e-10);
+  if(type==='ev'){assert.equal(m.co2Second,0);assert.equal(m.co2Km,0);}
+  else{
+   assert.ok(Math.abs(m.co2Second-m.litersHour*2350/3600)<1e-10);
+   assert.ok(Math.abs(m.co2Km-m.co2Second*3600/speed)<1e-10);
+   assert.ok(Math.abs(m.per100*m.kmPerLiter-100)<1e-10);
+  }
+ }
+});
 test('La riduzione conserva il rapporto e il rallentamento su tutto il regime',()=>{
  for(const type of Object.keys(ratios))for(const rpm of [800,2800,6000,14000]){
   const step=motionStep(type,{playing:true,assembled:true,rpm,rate:1},.02);

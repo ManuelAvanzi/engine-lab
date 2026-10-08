@@ -1,6 +1,14 @@
 import * as THREE from 'three';
 import {components} from './data.js';
 
+// Capture the component's reference centre once. Child meshes may reciprocate or
+// rotate; labels follow only the containing assembly, camera and exploded layout.
+export function createAnnotationAnchor(part){
+ part.updateWorldMatrix(true,true);
+ const center=new THREE.Box3().setFromObject(part).getCenter(new THREE.Vector3());
+ return part.worldToLocal(center);
+}
+
 const layouts={
  ice:{block:[-1.8,0,0],cover:[0,3.4,0],head:[0,2.2,0],pistons:[0,.9,1.8],rods:[0,.3,2.5],crank:[0,0,3.4],sump:[0,0,-2.4],intake:[0,0,-2.6],exhaust:[0,0,2.8],timing:[-2,0,0]},
  ev:{housing:[-2.6,0,0],stator:[0,0,-2.6],rotor:[0,1.4,0],shaft:[3,0,0],bearings:[-2,0,1.8],inverter:[0,2.2,0],battery:[0,0,-3],reducer:[3,0,1.2]}
@@ -64,7 +72,7 @@ export class Presentation {
    if(layout[id])p.userData.offset.set(...layout[id]);
    const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(),new THREE.Vector3()]),new THREE.LineDashedMaterial({color:0x7294a6,dashSize:.09,gapSize:.07,transparent:true,opacity:.5,depthWrite:false}));line.visible=false;v.scene.add(line);
    const label=document.createElement('div');label.className='part-annotation';label.textContent=components[id].name;label.hidden=true;this.overlay.append(label);
-   this.items.push({id,line,label});
+   this.items.push({id,line,label,anchor:createAnnotationAnchor(p)});
   }
  }
  update(dt){
@@ -79,14 +87,14 @@ export class Presentation {
    const delta=part.position.clone().sub(part.userData.origin||new THREE.Vector3()).multiply(v.root.scale);
    const displaced=delta.length()>.12;
    if(!displaced&&!(this.focused&&item.id===v.selected))continue;
-   const box=new THREE.Box3().setFromObject(part),center=box.getCenter(new THREE.Vector3()),rest=center.clone().sub(delta);
+   const center=part.localToWorld(item.anchor.clone()),rest=center.clone().sub(delta);
    if(displaced){const attr=item.line.geometry.attributes.position;attr.setXYZ(0,rest.x,rest.y,rest.z);attr.setXYZ(1,center.x,center.y,center.z);attr.needsUpdate=true;item.line.computeLineDistances();item.line.geometry.computeBoundingSphere();item.line.visible=true;}
    if(count>=3||(!displaced&&!(this.focused&&item.id===v.selected)))continue;
    const point=center.clone().project(v.camera);if(point.z< -1||point.z>1||Math.abs(point.x)>1||Math.abs(point.y)>1)continue;
    const x=(point.x*.5+.5)*width,y=(-point.y*.5+.5)*height;
    const w=Math.min(175,width*.4),h=28;
    for(const [dx,dy]of [[24,-38],[-w-24,-38],[24,16],[-w-24,16]]){
-    const left=Math.max(66,Math.min(width-w-18,x+dx)),top=Math.max(185,Math.min(height-165,y+dy));
+    const left=Math.max(width-(v.sceneWidth||width)+16,Math.min(width-w-18,x+dx)),top=Math.max(185,Math.min(height-165,y+dy));
     if(occupied.some(r=>left<r.x+w+8&&left+w+8>r.x&&top<r.y+h+8&&top+h+8>r.y))continue;
     item.label.hidden=false;item.label.style.left=`${left}px`;item.label.style.top=`${top}px`;item.label.classList.toggle('selected',item.id===v.selected);occupied.push({x:left,y:top});count++;break;
    }

@@ -12,6 +12,21 @@ import {prepareTesla,prepareFerrari,prepareConcept} from '../src/vehicles.js';
 import {sheetIds,technicalSvg} from '../src/technical-sheets.js';
 import {systems} from '../src/data.js';
 import {ratios,motionStep,roadMotion} from '../src/motion.js';
+import {createAnnotationAnchor} from '../src/presentation.js';
+
+test('Le etichette ignorano il ciclo dei pezzi mobili e seguono esplosione e trasformazioni del modello',()=>{
+ const root=new THREE.Group(),part=new THREE.Group(),piston=new THREE.Mesh(new THREE.BoxGeometry(.6,.4,.6));
+ root.add(part);part.add(piston);piston.position.set(0,1.4,0);
+ const anchor=createAnnotationAnchor(part),rest=part.localToWorld(anchor.clone());
+ for(let i=0;i<120;i++){
+  piston.position.y=1.4+.3*Math.cos(i);piston.rotation.x=i;
+  assert.ok(part.localToWorld(anchor.clone()).distanceTo(rest)<1e-12);
+ }
+ part.position.set(0,2,1);root.scale.setScalar(.7);root.rotation.y=.8;root.position.x=3;root.updateMatrixWorld(true);
+ const expected=new THREE.Vector3(0,3.4,1).applyMatrix4(root.matrixWorld);
+ assert.ok(part.localToWorld(anchor.clone()).distanceTo(expected)<1e-12);
+ assert.ok(expected.distanceTo(rest)>1);
+});
 
 test('Ogni componente dei tre propulsori ha geometria selezionabile e tavola dedicata',()=>{
  for(const type of Object.keys(systems)){

@@ -1,33 +1,26 @@
 import {LiveSimulation} from './live-simulation.js';
-import {scenarios} from './data.js';
 
 const f=(value,digits=1)=>value===null?'—':new Intl.NumberFormat('it-IT',{minimumFractionDigits:digits,maximumFractionDigits:digits}).format(value);
 export function mountLivePanel(viewer,state){
- const panel=document.createElement('details');panel.className='live-panel';panel.id='live-panel';panel.open=true;
- panel.innerHTML=`<summary><strong>Parametri in marcia</strong><span id="live-state">Veicolo fermo</span></summary>
+ const panel=document.createElement('section');panel.className='live-panel';panel.id='live-panel';panel.setAttribute('aria-label','Dati della prova');
+ panel.innerHTML=`<div class="live-heading"><span id="live-state" role="status">Veicolo fermo</span><span>Stime del modello · non misure del veicolo</span></div>
  <div class="live-values">
   <div><span id="live-consumption-label">Benzina</span><strong><output id="live-consumption">—</output><small id="live-consumption-unit">L/100 km</small></strong><p id="live-economy">Avvia la marcia con lo slider</p></div>
   <div><span>CO₂ allo scarico</span><strong><output id="live-co2">0,00</output><small>g/s</small></strong><p id="live-co2-distance">0 grammi ogni secondo</p></div>
-  <div><span>Temperatura</span><strong><output id="live-temperature">20</output><small>°C</small></strong><p id="live-temperature-part">Liquido di raffreddamento</p></div>
+  <div><span>Temperatura stimata</span><strong><output id="live-temperature">20</output><small>°C</small></strong><p id="live-temperature-part">Liquido di raffreddamento</p></div>
  </div>
  <details class="live-extra"><summary>Altri parametri e totali della prova</summary>
   <dl class="live-secondary">
    <div><dt id="live-rate-label">Benzina ogni ora</dt><dd id="live-rate">0,00 L/h</dd></div>
-   <div><dt>Potenza utile alle ruote</dt><dd id="live-power">0,0 kW</dd></div>
-   <div><dt>Energia trasformata in movimento</dt><dd id="live-efficiency">—</dd></div>
+   <div><dt>Potenza netta richiesta alle ruote</dt><dd id="live-power">0,0 kW</dd></div>
+   <div><dt>Rendimento stimato del sistema</dt><dd id="live-efficiency">—</dd></div>
    <div><dt id="live-total-label">Benzina consumata</dt><dd id="live-total">0,000 L</dd></div>
    <div><dt>CO₂ emessa nella prova</dt><dd id="live-total-co2">0,0 g</dd></div>
    <div><dt>Distanza e tempo in marcia</dt><dd id="live-trip">0,000 km · 0:00</dd></div>
   </dl>
-  <div class="live-inputs"><label>Sforzo richiesto al motore <output id="live-load-value">50%</output><input id="live-load" aria-label="Sforzo richiesto al motore" type="range" min="10" max="100" value="50"></label><label>Percorso<select id="live-scenario" aria-label="Percorso della prova">${Object.entries(scenarios).map(([id,s])=>`<option value="${id}">${s.name}</option>`).join('')}</select></label></div>
-  <p class="live-hint">Prova a cambiare velocità o sforzo e osserva consumi e temperatura.</p>
   <div class="live-actions"><button data-action="reset-trip">Azzera prova</button><button data-action="live-help">Come leggere i valori</button></div>
- </details><small class="live-disclaimer">Stime didattiche · totali in tempo reale</small>`;
- viewer.host.parentElement.append(panel);
- // Reserve a little projection space for the main readings; expanded controls may scroll.
- const layout=()=>{const reserve=panel.hidden||!panel.open?0:180;if(viewer.livePanelSpace!==reserve){viewer.livePanelSpace=reserve;viewer.resize();}};
- const observer=new MutationObserver(layout);observer.observe(panel,{attributes:true,attributeFilter:['hidden','open']});layout();
- addEventListener('pagehide',()=>observer.disconnect(),{once:true});
+ </details><small class="live-disclaimer">Consumi riferiti alle condizioni impostate · totali in tempo reale · riscaldamento illustrativo</small>`;
+ document.querySelector('.parameter-controls').before(panel);
  const sim=new LiveSimulation(state.type,state.ambient),nodes={};panel.querySelectorAll('[id]').forEach(n=>nodes[n.id]=n);
  let previous=performance.now();
  const put=(id,text)=>{if(nodes[id].textContent!==text)nodes[id].textContent=text;};
@@ -43,7 +36,6 @@ export function mountLivePanel(viewer,state){
   put('live-power',`${f(m.powerKw)} kW`);put('live-efficiency',m.running?`${f(m.efficiency)}%`:'—');
   put('live-total-label',ev?'Energia consumata':'Benzina consumata');put('live-total',ev?`${f(m.energy,3)} kWh`:`${f(m.fuel,3)} L`);put('live-total-co2',`${f(m.co2)} g`);
   const seconds=Math.floor(m.seconds);put('live-trip',`${f(m.distance,3)} km · ${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`);
-  put('live-load-value',`${state.load}%`);if(document.activeElement!==nodes['live-load'])nodes['live-load'].value=state.load;nodes['live-scenario'].value=state.scenario;
  }
  const clock=setInterval(update,250);document.addEventListener('visibilitychange',()=>{previous=performance.now();});addEventListener('pagehide',()=>clearInterval(clock),{once:true});update();
  return {element:panel,reset(){sim.reset(state.type,state.ambient);previous=performance.now();update();}};
