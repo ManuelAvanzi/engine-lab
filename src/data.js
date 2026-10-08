@@ -1,3 +1,4 @@
+import {roadMotion} from './motion.js';
 export const systems = {
   ice: { name: 'Motore a benzina', short: 'Termico', tag: 'COMBUSTIONE INTERNA', subtitle: '4 cilindri in linea · ciclo Otto · 2,0 L', icon: 'fuel', color: '#678b89', nominal: 110, maxRpm: 6500, components: ['cover','head','pistons','rods','crank','block','intake','exhaust','timing','sump'] },
   hybrid: { name: 'Sistema full hybrid', short: 'Ibrido', tag: 'DUE FONTI, UN SISTEMA', subtitle: 'Architettura parallela · termico + elettrico', icon: 'combine', color: '#8eac60', nominal: 130, maxRpm: 6000, components: ['cover','head','pistons','rods','crank','block','intake','exhaust','timing','sump','motor','inverter','battery','transmission'] },
@@ -28,16 +29,21 @@ export const components = {
 export const scenarios = {
  city: { name: 'Città', speed: 30, demand: 9, rpm: 1800, load: 35, ambient: 20 },
  mixed: { name: 'Extraurbano', speed: 70, demand: 14, rpm: 2800, load: 50, ambient: 20 },
- highway: { name: 'Autostrada', speed: 120, demand: 21, rpm: 3800, load: 70, ambient: 25 },
+ highway: { name: 'Autostrada', speed: 100, demand: 21, rpm: 3800, load: 70, ambient: 25 },
  climb: { name: 'Salita impegnativa', speed: 50, demand: 30, rpm: 4500, load: 90, ambient: 35 }
 };
 export const co2PerLiter = 2.35; // kg/L, rounded from EPA 8.887 kg per US gallon.
+export const gasolineKwhPerLiter = 8.9; // Representative LHV; AFDC range is about 8.68–8.99 kWh/L.
 const clamp = (n, a, b) => Math.min(b, Math.max(a,n));
 export function simulate(type, input) {
  const s = scenarios[input.scenario] || scenarios.mixed;
+ // Road speed is authoritative. Each powertrain derives its own rpm, including comparisons.
+ const motion=roadMotion(type,input.speed ?? s.speed);
+ const rpm=input.speed!==undefined?motion.rpm:Math.max(0,Number(input.rpm)||0);
  const load = clamp(Number(input.load) || 0, 10, 100) / 100;
- const normalizedRpm = clamp(Number(input.rpm) || 0, 800, systems[type].maxRpm) / systems[type].maxRpm;
+ const normalizedRpm = clamp(rpm, 0, systems[type].maxRpm) / systems[type].maxRpm;
  const ambient = clamp(Number(input.ambient) || 0, -10, 45);
+ if(motion.kmh===0)return {rpm:0,speed:0,efficiency:0,consumption:null,energy:null,co2:null,temperature:ambient,power:0,powerRequired:0,torque:0,recovery:0,loss:0,warning:false,demandExceedsAvailable:false};
  const cooling = input.cooling !== false;
  const thermalPenalty = !cooling ? 0.07 : Math.max(0, ambient-30)*0.001;
  let efficiency = type === 'ev' ? 0.92 - 0.10*(load-0.6)**2 - 0.05*normalizedRpm - thermalPenalty : type === 'hybrid' ? 0.35 + 0.04*load - 0.04*(normalizedRpm-0.5)**2 - thermalPenalty : 0.22 + 0.13*load - 0.08*(normalizedRpm-0.5)**2 - thermalPenalty;
@@ -49,11 +55,12 @@ export function simulate(type, input) {
  // Recupero incorporato soltanto nella domanda netta dei cicli con decelerazioni.
  const recovery = type === 'ice' ? 0 : input.scenario === 'city' ? 0.20 : input.scenario === 'mixed' ? 0.08 : 0.02;
  const energy = wheelEnergy * (1-recovery) / efficiency;
- const consumption = type === 'ev' ? energy : energy / 8.9;
+ const consumption = type === 'ev' ? energy : energy / gasolineKwhPerLiter;
  const co2 = type === 'ev' ? 0 : consumption*co2PerLiter*10;
  const temperature = type === 'ev' ? 35 + load*43 + ambient*0.3 + (!cooling ? 55 : 0) : 67 + load*27 + ambient*0.4 + (!cooling ? 48 : 0);
- const power = (input.rpm>0?1:0) * systems[type].nominal * load * Math.min(1, normalizedRpm*2.2) * (cooling ? 1 : .72);
- return { efficiency: efficiency*100, consumption, energy, co2, temperature, power, torque: input.rpm>0?power*9550/input.rpm:0, recovery: recovery*100, loss: 100-efficiency*100, warning: !cooling || temperature > (type === 'ev' ? 110 : 110) };
+ const power = (rpm>0?1:0) * systems[type].nominal * load * Math.min(1, normalizedRpm*2.2) * (cooling ? 1 : .72);
+ const powerRequired=wheelEnergy*(1-recovery)*speed/100;
+ return {rpm,speed,efficiency:efficiency*100,consumption,energy,co2,temperature,power,powerRequired,torque:rpm>0?power*60000/(2*Math.PI*rpm):0,recovery:recovery*100,loss:100-efficiency*100,warning:!cooling||temperature>110,demandExceedsAvailable:powerRequired>power};
 }
 export const questions = [
  { question: 'Perché il pistone è collegato all’albero motore tramite una biella?', options: ['Per convertire il moto alternativo in rotazione', 'Per abbassare la temperatura dei gas', 'Per immagazzinare energia elettrica'], correct: 0, explanation: 'Il meccanismo biella-manovella trasforma il movimento alternativo del pistone in rotazione dell’albero.' },

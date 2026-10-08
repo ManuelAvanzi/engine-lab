@@ -12,7 +12,7 @@ http.createServer(async (req, res) => {
       const response=await handleRequest(request,process.env);res.writeHead(response.status,Object.fromEntries(response.headers));res.end(await response.text());return;
     }
     const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
-    const file = path.resolve(root, '.' + (pathname === '/' ? '/index.html' : ['/lab','/lab/'].includes(pathname) ? '/lab.html' : ['/account','/account/'].includes(pathname)?'/account.html':pathname));
+    const file = path.resolve(root, '.' + (pathname === '/' ? '/index.html' : ['/fonti','/fonti/'].includes(pathname)?'/fonti.html': ['/lab','/lab/'].includes(pathname) ? '/lab.html' : ['/account','/account/'].includes(pathname)?'/account.html':pathname));
     if (!file.startsWith(root + path.sep)) { res.writeHead(403); res.end(); return; }
     const data = await readFile(file);
     res.writeHead(200, { 'Content-Type': types[path.extname(file)] || 'application/octet-stream' }); res.end(data);

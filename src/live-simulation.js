@@ -1,4 +1,4 @@
-import {simulate,co2PerLiter} from './data.js';
+import {simulate,co2PerLiter,gasolineKwhPerLiter} from './data.js';
 import {roadMotion} from './motion.js';
 
 // Educational elapsed-time model. Totals follow road time, not the animation's slow motion.
@@ -26,8 +26,8 @@ export class LiveSimulation {
   const baseRate=running?m.energy*motion.kmh/100:0;
   const inputKw=baseRate*warmup(this.temperature);
   const energyStep=baseRate*warmupIntegral/3600;
-  const litersHour=type==='ev'?0:inputKw/8.9;
-  const litersStep=type==='ev'?0:energyStep/8.9;
+  const litersHour=type==='ev'?0:inputKw/gasolineKwhPerLiter;
+  const litersStep=type==='ev'?0:energyStep/gasolineKwhPerLiter;
   if(running){this.seconds+=dt;this.distance+=motion.kmh*dt/3600;this.fuel+=litersStep;this.energy+=energyStep;this.co2+=litersStep*co2PerLiter*1000;}
   const per100=motion.kmh>0?m.consumption*warmup(this.temperature):null;
   const efficiency=m.efficiency/warmup(this.temperature);

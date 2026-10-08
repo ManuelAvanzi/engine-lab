@@ -109,6 +109,40 @@ test('Ogni parte si ispeziona e torna alla superficie senza alterare esplosione 
 import {roadMotion,wheelDiameter,speedFromRpm} from '../src/motion.js';
 import {LiveSimulation} from '../src/live-simulation.js';
 import {co2PerLiter} from '../src/data.js';
+import {makeExperiment,motionLesson} from '../src/learning.js';
+test('Confronti: ogni sistema usa il proprio rapporto alla stessa velocità, anche con rpm estranei',()=>{
+ for(const speed of [1,40,80,100])for(const type of Object.keys(systems)){
+  const expected=simulate(type,{...base,speed,rpm:roadMotion(type,speed).rpm});
+  assert.deepEqual(simulate(type,{...base,speed,rpm:99999}),expected);
+  assert.equal(expected.rpm,roadMotion(type,speed).rpm);
+  assert.ok(Math.abs(expected.powerRequired-expected.energy*expected.efficiency/100*speed/100)<1e-10);
+ }
+});
+test('A zero i valori per distanza sono indefiniti e non vengono mostrati consumi o temperature di marcia',()=>{
+ for(const type of Object.keys(systems)){
+  const m=simulate(type,{...base,speed:0,cooling:false});
+  assert.equal(m.energy,null);assert.equal(m.consumption,null);assert.equal(m.co2,null);
+  assert.equal(m.power,0);assert.equal(m.torque,0);assert.equal(m.efficiency,0);assert.equal(m.temperature,20);
+ }
+});
+test('Le tre indagini guidate conservano le variabili controllate e verificano le previsioni per ogni sistema',()=>{
+ assert.ok(motionLesson.speed>0);assert.equal(motionLesson.playing,true);
+ for(const type of Object.keys(systems))for(const scenario of Object.keys(scenarios))for(const load of [10,50,100])for(const ambient of [-10,20,45]){
+  const c={...base,scenario,load,ambient};
+  const motion=makeExperiment(type,c,'motion');assert.equal(motion.after.rpm,2*motion.before.rpm);
+  const energy=makeExperiment(type,c,'energy');assert.ok(energy.after.consumption>energy.before.consumption);
+  if(type==='ev')assert.equal(energy.after.co2,0);else assert.ok(energy.after.co2>energy.before.co2);
+  const cooling=makeExperiment(type,c,'cooling');assert.equal(cooling.base.speed,cooling.changed.speed);
+  assert.ok(cooling.after.temperature>cooling.before.temperature);assert.ok(cooling.after.power<cooling.before.power);
+ }
+});
+test('Le fonti sono accessibili con route dedicata, slash finale e richiesta HEAD',async()=>{
+ const assets={'/fonti.html':{body:'Fonti dei dati e dei parametri',type:'text/html'}};
+ for(const path of ['/fonti','/fonti/','/fonti#ipotesi']){
+  const res=await handleRequest(new Request('https://lab.example'+path),{},assets);assert.equal(res.status,200);assert.match(await res.text(),/Fonti dei dati/);
+ }
+ assert.equal(await (await handleRequest(new Request('https://lab.example/fonti',{method:'HEAD'}),{},assets)).text(),'');
+});
 test('Prova in marcia: bilanci di carburante, CO2 e distanza indipendenti dalla frequenza di aggiornamento',()=>{
  for(const type of Object.keys(systems)){
   const input={...base,type,speed:60,playing:true,assembled:true};
