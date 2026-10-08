@@ -83,11 +83,12 @@ export class PowertrainViewer {
 
   this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(host);
 
-  this.presentation=new Presentation(this);this.flows=new FlowAnimation(this);this.clock=new THREE.Clock();this.renderer.setAnimationLoop((time,frame)=>this.animate(frame));
+  this.presentation=new Presentation(this);this.flows=new FlowAnimation(this);this.clock=new THREE.Clock();document.addEventListener('visibilitychange',()=>this.clock.getDelta());this.renderer.setAnimationLoop((time,frame)=>this.animate(frame));
 
  }
 
- resize(){const {width,height}=this.host.getBoundingClientRect();if(!width||!height)return;this.camera.aspect=width/height;const fit=Math.max(1,1.15/this.camera.aspect);if(this.controls&&!this.xrSession){const delta=this.camera.position.clone().sub(this.controls.target);this.camera.position.copy(this.controls.target).add(delta.multiplyScalar(fit/(this.aspectFit||1)));}this.aspectFit=fit;this.camera.updateProjectionMatrix();this.renderer.setSize(width,height);this.composer?.setSize(width,height);}
+ // Reserve the component rail in the camera frustum while keeping a seamless full-width backdrop.
+ resize(){const {width,height}=this.host.getBoundingClientRect();if(!width||!height)return;const rail=Math.min(width*.4,parseFloat(getComputedStyle(this.host.parentElement).getPropertyValue('--component-rail'))||0);this.camera.setViewOffset(width-rail,height,-rail,0,width,height);this.sceneWidth=width-rail;const fit=Math.max(1,1.15/this.camera.aspect);if(this.controls&&!this.xrSession){const scale=fit/(this.aspectFit||1);const rescale=(position,target)=>position.sub(target).multiplyScalar(scale).add(target);rescale(this.camera.position,this.controls.target);const tween=this.presentation?.tween;if(tween){rescale(tween.from,tween.look);rescale(tween.position,tween.target);}}this.aspectFit=fit;this.camera.updateProjectionMatrix();this.renderer.setSize(width,height);this.composer?.setSize(width,height);}
 
  resetCamera(){const fit=Math.max(1,1.15/this.camera.aspect),spread=Object.values(this.parts).some(p=>p.userData.detached);const target=new THREE.Vector3(0,this.carMode?1.15:1.38+1.1*(this.targetExplosion||0)+(spread?.55:0),this.carMode?1:0);const position=new THREE.Vector3(...(this.carMode?(this.type==='ev'?[11,7.3,-14]:[11,7.3,14]):[5.7,3.1,7.4])).multiplyScalar(fit*(1+.4*(this.targetExplosion||0))*(spread?1.22:1)).add(target);this.aspectFit=fit;if(this.presentation){this.presentation.setFocused(false);this.presentation.move(position,target);}else{this.controls.target.copy(target);this.camera.position.copy(position);this.controls.update();}}
 
@@ -337,15 +338,15 @@ export class PowertrainViewer {
 
  pick(){const hits=this.getHits();if(hits[0])this.onSelect(hits[0].object.userData.part);}
 
- animate(frame){const dt=Math.min(this.clock.getDelta(),.05);
+ animate(frame){const elapsed=this.clock.getDelta(),dt=Math.min(elapsed,.05);
 
   const assembled=this.explosion<.02&&this.targetExplosion===0&&Object.values(this.parts).every(p=>!p.userData.detached&&p.userData.manualOffset.lengthSq()<.0001&&p.position.distanceToSquared(p.userData.origin||new THREE.Vector3())<.0025);
 
-  const step=motionStep(this.type||'ice',{playing:this.playing,assembled,rpm:this.rpm,rate:this.playbackRate},dt);this.angle+=step.engine;this.wheelAngle+=step.wheels;
+  const step=motionStep(this.type||'ice',{playing:this.playing,assembled,rpm:this.rpm,rate:this.playbackRate},document.hidden?0:elapsed);this.angle+=step.engine;this.wheelAngle+=step.wheels;
 
   const wheelOutput=document.getElementById('wheel-rpm-readout');if(wheelOutput){const text=rpmFormat.format(assembled?roadMotion(this.type||'ice',this.roadSpeed||0).wheelRpm:0)+' rpm';if(wheelOutput.textContent!==text)wheelOutput.textContent=text;}
 
-  const linkState=document.getElementById('transmission-state');if(linkState){const text=assembled?'Vista rallentata al 3% · rapporti conservati':'Trasmissione separata · ruote ferme';if(linkState.textContent!==text)linkState.textContent=text;}
+  const linkState=document.getElementById('transmission-state');if(linkState){const text=!this.playing?'In pausa · giri indicati per la velocità impostata':!assembled?'Trasmissione separata · ruote ferme':this.playbackRate===100?'Tempo reale · possibili effetti stroboscopici':'Rallentatore 3% · giri indicati alla velocità reale';if(linkState.textContent!==text)linkState.textContent=text;}
 
   for(const wheel of this.car.userData.wheels||[])wheel.quaternion.copy(wheelPose(this.wheelAngle));
 

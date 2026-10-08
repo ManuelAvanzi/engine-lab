@@ -82,6 +82,20 @@ test('Ogni parte si ispeziona e torna alla superficie senza alterare esplosione 
 });
 
 import {roadMotion,wheelDiameter,speedFromRpm} from '../src/motion.js';
+test('La rotazione segue il tempo trascorso anche a 10 fps, in tempo reale e al rallentatore',()=>{
+ const cadences=[Array(60).fill(1/60),Array(30).fill(1/30),Array(10).fill(.1),[.01,.19,.07,.03,.4,.3]];
+ for(const type of Object.keys(ratios))for(const speed of [0,50,100])for(const rate of [3,100])for(const frames of cadences){
+  const d=roadMotion(type,speed);
+  const total=frames.reduce((sum,dt)=>{
+   const step=motionStep(type,{playing:true,assembled:true,rpm:d.rpm,rate},dt);
+   return {engine:sum.engine+step.engine,wheels:sum.wheels+step.wheels};
+  },{engine:0,wheels:0});
+  const expected=(speed/3.6)/(Math.PI*wheelDiameter)*2*Math.PI*rate/slowMotion;
+  assert.ok(Math.abs(total.wheels-expected)<1e-10,`${type} ${speed} km/h rate ${rate}`);
+  assert.ok(Math.abs(total.engine-expected*ratios[type])<1e-9);
+ }
+ for(const dt of [-1,NaN,Infinity])assert.equal(motionStep('ice',{playing:true,assembled:true},dt).engine,0);
+});
 test('Da 0 a 100 km/h ruote e motore mantengono velocita e rapporto coerenti',()=>{
  for(const type of Object.keys(systems))for(const speed of [0,1,50,100]){
   const d=roadMotion(type,speed);

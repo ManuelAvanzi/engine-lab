@@ -14,7 +14,7 @@ export const vehicleInfo={
 
 function finishMaterial(original,role){
  const tire=role==='tire',wheel=role==='wheel',glass=role==='glass';
- const m=new THREE.MeshStandardMaterial({color:tire?'#252a30':wheel?'#72818f':glass?'#8caebe':'#7da6bd',metalness:wheel?.25:0,roughness:tire?.95:wheel?.72:.86,transparent:!tire&&!wheel,opacity:tire||wheel?1:glass?.07:.1,depthWrite:tire||wheel,side:tire||wheel?THREE.DoubleSide:THREE.FrontSide});
+ const m=new THREE.MeshStandardMaterial({color:tire?'#252a30':wheel?'#72818f':glass?'#8caebe':'#7da6bd',metalness:wheel?.25:0,roughness:tire?.95:wheel?.72:.86,transparent:true,opacity:tire?.82:wheel?.88:glass?.07:.1,depthWrite:false,side:tire||wheel?THREE.DoubleSide:THREE.FrontSide});
  if(tire){m.normalMap=original.normalMap;m.normalScale.copy(original.normalScale||new THREE.Vector2(1,1));}
  m.envMapIntensity=.12;
  m.userData.role=role;m.userData.overviewOpacity=m.opacity;

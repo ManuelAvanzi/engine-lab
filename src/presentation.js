@@ -34,8 +34,9 @@ export class Presentation {
   const right=new THREE.Vector3().crossVectors(v.camera.up,direction).normalize(),up=new THREE.Vector3().crossVectors(direction,right).normalize();
   const tanV=Math.tan(fov/2),tanH=tanV*v.camera.aspect;
   const panel=v.host.parentElement.querySelector('.viewer-technical-card'),rect=panel?.getBoundingClientRect(),hostRect=v.host.getBoundingClientRect();
-  const occluded=panel&&!panel.hidden&&rect.width?Math.min(hostRect.width*.48,hostRect.right-rect.left+20):0;
-  const usableH=Math.max(.55,(hostRect.height-215)/hostRect.height),usableW=1-occluded/hostRect.width;
+  const sceneWidth=v.sceneWidth||hostRect.width;
+  const occluded=panel&&!panel.hidden&&rect.width?Math.max(0,Math.min(sceneWidth*.48,hostRect.right-rect.left+20)):0;
+  const usableH=Math.max(.55,(hostRect.height-215)/hostRect.height),usableW=1-occluded/sceneWidth;
   let distance=1.1;
   // Fit the projected box, rather than its enclosing sphere, so long engines
   // do not become unnecessarily small on wide screens.
@@ -43,7 +44,7 @@ export class Presentation {
    const delta=new THREE.Vector3(x,y,z).sub(target),depth=delta.dot(direction);
    distance=Math.max(distance,Math.abs(delta.dot(right))/(tanH*usableW)+depth,Math.abs(delta.dot(up))/(tanV*usableH)+depth);
   }
-  distance*=padding;target.addScaledVector(right,distance*tanH*(occluded/hostRect.width));
+  distance*=padding;target.addScaledVector(right,distance*tanH*(occluded/sceneWidth));
   this.move(target.clone().addScaledVector(direction,distance),target);
  }
  frameExplosion(){

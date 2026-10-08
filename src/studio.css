@@ -139,3 +139,24 @@ main{padding-top:14px}
 @media(max-width:620px){.viewer-components{top:160px;left:59px}.viewer-components summary{font-size:10px;padding:10px 8px}.viewer-components[open]{max-width:240px}.viewer-technical-card{top:230px;right:45px;width:235px;max-height:300px;padding:10px}.viewer-technical-card h3{font-size:14px}.viewer-technical-card .technical-figure figcaption{display:none}.technical-figure.large ol{grid-template-columns:1fr}.drivetrain-readout{font-size:9px;gap:4px 10px}.cycle-panel{max-width:270px}}
 dialog.scan-dialog{width:min(1100px,96vw);background:#172d3b;color:#e4edf2;border:1px solid #507382;color-scheme:dark}.scan-dialog #dialog-body{color:#b8ced9}.scan-dialog .dialog-header{border-color:#42616f}.scan-dialog .dialog-header h2{color:#eef7fc}.scan-dialog .eyebrow{color:#88d6d3}
 #scan-host{height:min(57vh,600px);min-height:300px;position:relative;border-radius:10px;overflow:hidden;background:#243b4a}#scan-host canvas{display:block;touch-action:none}.scan-status{position:absolute;inset:45% 10%;text-align:center;font-size:13px;pointer-events:none}.scan-credit{font-size:10px!important}.scan-credit a{color:#a2e9e2!important}.scan-dialog .icon-button{color:#e3f2f8}
+
+/* Persistent component rail and compact horizontal studio tools. */
+.viewer{--component-rail:184px}
+.viewer #canvas-host,.viewer .part-annotations{left:0}
+.viewer .viewer-components,.viewer:fullscreen .viewer-components{left:16px;top:150px;bottom:242px;width:calc(var(--component-rail) - 24px);max-width:none;display:flex;flex-direction:column;background:#10232ebd;border-color:#52718055;backdrop-filter:blur(10px)}
+.viewer-components-heading{display:flex;align-items:center;gap:7px;padding:12px 10px;font-size:11px;color:#d3e4ec;flex-shrink:0}
+.viewer-components-heading svg{width:15px;height:15px;color:#89c9ce}.viewer-components-heading b{margin-left:auto;font-size:9px;font-weight:400;color:#7e9daa}
+.viewer .viewer-component-list{display:flex;flex-direction:column;min-height:0;max-height:none;padding:5px;scrollbar-width:thin;scrollbar-color:#476676 transparent;border-top-color:#52718033}
+.viewer-component-list button{flex-shrink:0;font-size:10px;padding:10px 7px;gap:7px;line-height:1.4}.viewer-component-list button span{font-size:8px}
+.viewer .viewer-options,.viewer:fullscreen .viewer-options{left:auto;right:20px;top:82px;background:transparent;border:0;box-shadow:none;max-width:calc(100% - 36px)}
+.viewer-options .view-tools{position:static;display:flex;flex-direction:row;align-items:center;gap:3px;margin:0;padding:4px;background:#10232ed9;border:1px solid #52718055;border-radius:7px}
+.viewer-options .view-tools .icon-button{width:32px;height:32px;flex-shrink:0}
+.viewer-options .view-tools>span{height:20px;width:1px;margin:0 4px}
+.viewer .realtime-toggle{height:32px;display:flex;align-items:center;gap:6px;padding:0 9px;color:#90aebb;font-size:10px;border-radius:4px;white-space:nowrap}
+.realtime-toggle svg{width:14px;height:14px}.viewer .realtime-toggle:hover{background:#193b49;color:#d0eef2}.viewer .realtime-toggle.active{background:#245561;color:#bafaf0}
+.viewer .inside-caption{left:calc(var(--component-rail) + 16px);max-width:min(355px,calc(100% - var(--component-rail) - 82px))}
+@media(min-width:1001px) and (max-width:1200px){.viewer .scene-tabs{top:24px}.viewer .viewer-heading h2{font-size:18px}.viewer .viewer-heading{max-width:210px}.viewer .scene-tabs button{padding:7px;font-size:9px}.viewer{--component-rail:166px}}
+@media(max-width:620px){.viewer{--component-rail:139px}.viewer .scene-tabs{top:105px;left:16px;right:16px}.viewer .viewer-options,.viewer:fullscreen .viewer-options{top:150px;left:16px;right:auto}.viewer .viewer-components,.viewer:fullscreen .viewer-components{top:205px;left:12px;bottom:258px;width:calc(var(--component-rail) - 18px)}.viewer-components-heading{padding:10px 7px;font-size:10px;gap:5px}.viewer-component-list button{font-size:9px;padding:9px 5px;gap:4px}.viewer .viewer-technical-card{top:auto;bottom:230px;right:12px;width:calc(100% - var(--component-rail) - 25px);max-height:220px}.viewer .viewer-technical-card h3{font-size:12px}.viewer .viewer-technical-card header{font-size:7px}.viewer .viewer-technical-card .sheet-focus{font-size:9px}.viewer .brightness-control{top:208px}.viewer .inside-caption{left:calc(var(--component-rail) + 8px);bottom:240px;max-width:calc(100% - var(--component-rail) - 20px);padding:10px;font-size:10px}.viewer .realtime-toggle{font-size:9px;padding:0 6px}}
+
+.viewer .vehicle-card{top:136px;right:22px}
+@media(max-width:620px){.viewer .vehicle-card{top:210px;right:45px;max-width:calc(100% - var(--component-rail) - 64px)}.viewer .vehicle-card-top{font-size:9px;flex-wrap:wrap;gap:4px}.viewer .vehicle-card small{font-size:8px}}

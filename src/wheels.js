@@ -4,8 +4,8 @@ import * as THREE from 'three';
 // in the sedan asset. Rotation remains on the imported axle centres.
 export function createDetailedWheel(radius=.88,width=.56){
  const group=new THREE.Group();
- const rubber=new THREE.MeshStandardMaterial({color:'#283139',roughness:.94,metalness:0,side:THREE.DoubleSide});rubber.userData.role='tire';
- const alloy=new THREE.MeshStandardMaterial({color:'#b1bec7',metalness:.55,roughness:.36,side:THREE.DoubleSide});alloy.userData.role='wheel';
+ const rubber=new THREE.MeshStandardMaterial({color:'#283139',roughness:.94,metalness:0,transparent:true,opacity:.82,depthWrite:false,side:THREE.DoubleSide});rubber.userData.role='tire';
+ const alloy=new THREE.MeshStandardMaterial({color:'#b1bec7',metalness:.55,roughness:.36,transparent:true,opacity:.88,depthWrite:false,side:THREE.DoubleSide});alloy.userData.role='wheel';
  const graphite=alloy.clone();graphite.color.set('#435864');graphite.roughness=.65;
  const add=(geo,mat=alloy,pos=[0,0,0])=>{const m=new THREE.Mesh(geo,mat);m.position.set(...pos);m.castShadow=true;group.add(m);return m;};
  const lathe=points=>new THREE.LatheGeometry(points.map(([r,x])=>new THREE.Vector2(r*radius,x*width)),80).rotateZ(Math.PI/2);

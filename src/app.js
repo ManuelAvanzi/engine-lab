@@ -30,7 +30,7 @@ function renderSystems(){
 
  $('#component-list').innerHTML=systems[state.type].components.map(id=>`<button class="component-button ${id===state.selected?'active':''}" data-component="${id}" aria-pressed="${id===state.selected}" style="--part-color:${components[id].color}"><span class="part-dot"></span>${components[id].name}${id===state.selected?icon('chevron-right'):''}</button>`).join('');
 
- $('#component-count').textContent=systems[state.type].components.length;
+ $('#component-count').textContent=systems[state.type].components.length;if($('#viewer-part-count'))$('#viewer-part-count').textContent=systems[state.type].components.length;
  const scan=$('.technical-scan-button');if(scan)scan.hidden=state.type==='ev';
 
  const list=$('.viewer-component-list');if(list)list.innerHTML=systems[state.type].components.map((id,i)=>`<button data-component="${id}" aria-pressed="${id===state.selected}"><span>${String(i+1).padStart(2,'0')}</span>${components[id].name}</button>`).join('');
@@ -71,7 +71,7 @@ function renderInspector(){const c=components[state.selected];$('#inspector').in
 
 function renderPartControls(){const parent=$('#inspector');if(!parent||!viewer)return;parent.querySelector('.manipulation')?.remove();const p=viewer.parts[state.selected];if(!p)return;const panel=document.createElement('div');panel.className='manipulation';panel.innerHTML=`<div class="manipulation-heading">SMONTA IL COMPONENTE</div><div class="part-actions"><button data-action="detach" class="${p.userData.detached?'selected':''}">${icon(p.userData.detached?'package-check':'move-up-right')}${p.userData.detached?'Reinserisci':'Estrai'}</button><button data-action="move-part" class="${state.drag?'selected':''}">${icon('hand')}Sposta</button></div><details class="position-controls"><summary>Posizione precisa · X / Y / Z</summary>${['x','y','z'].map(axis=>`<label>${axis.toUpperCase()}<input aria-label="Posizione ${axis.toUpperCase()} del componente" data-part-axis="${axis}" type="range" min="-5" max="5" step="0.1" value="${p.userData.manualOffset[axis]}"><output>${p.userData.manualOffset[axis].toFixed(1)}</output></label>`).join('')}</details><button class="text-button" data-action="reassemble">${icon('rotate-ccw')}Ricomponi tutti i componenti</button></div>`;parent.querySelector('.relationship').before(panel);}
 
-function selectComponent(id,focus=true){if(!systems[state.type].components.includes(id))return;state.selected=id;if(focus&&viewer?.carMode){state.car=false;viewer.setCar(false);syncToggles();}viewer?.select(id,false);renderSystems();renderInspector();renderPartControls();renderViewerSheet(focus);if(focus){viewer?.presentation?.focus();$('.viewer-components')?.removeAttribute('open');if(!document.fullscreenElement&&!matchMedia('(max-width:900px)').matches){$('.workspace').classList.remove('inspector-collapsed');$('[data-action="toggle-inspector"]')?.setAttribute('aria-expanded','true');$('#inspector').scrollTop=0;}}$('#tutor-prompt').textContent=components[id].point;refreshIcons();}
+function selectComponent(id,focus=true){if(!systems[state.type].components.includes(id))return;state.selected=id;if(focus&&viewer?.carMode){state.car=false;viewer.setCar(false);syncToggles();}viewer?.select(id,false);renderSystems();renderInspector();renderPartControls();renderViewerSheet(focus);if(focus){viewer?.presentation?.focus();if(!document.fullscreenElement&&!matchMedia('(max-width:900px)').matches){$('.workspace').classList.remove('inspector-collapsed');$('[data-action="toggle-inspector"]')?.setAttribute('aria-expanded','true');$('#inspector').scrollTop=0;}}$('#tutor-prompt').textContent=components[id].point;refreshIcons();}
 
 function renderViewerSheet(open=false){const card=$('.viewer-technical-card');if(!card)return;card.innerHTML=`<header><span>COMPONENTE SELEZIONATO</span><button data-action="close-viewer-sheet" aria-label="Chiudi scheda nel viewer">×</button></header><h3>${components[state.selected].name}</h3>${technicalFigure(state.selected)}<button class="sheet-focus" data-action="focus-selected">Inquadra componente</button>`;card.hidden=!open;}
 
@@ -135,7 +135,7 @@ const actions={
 
  reassemble:()=>{viewer?.resetParts();state.explode=0;viewer?.setExplosion(0);$('#explode').value=0;$('#explode-value').textContent='0%';state.isolated=false;viewer?.isolate(false);selectComponent(state.selected);toast('Tutti i componenti tornano nelle loro sedi.');},
 
- car:()=>{state.car=true;state.isolated=false;viewer?.isolate(false);viewer?.setCar(true);renderInspector();renderPartControls();syncToggles();},
+ car:()=>{state.car=true;state.isolated=false;viewer?.isolate(false);viewer?.setCar(true);renderViewerSheet(false);renderInspector();renderPartControls();syncToggles();},
 
  'engine-view':()=>{state.car=false;viewer?.setCar(false);syncToggles();},
 
@@ -227,7 +227,7 @@ const vehicleCard=document.createElement('div');vehicleCard.className='vehicle-c
 
 const studioToolbar=document.createElement('div');studioToolbar.className='studio-toolbar';studioToolbar.innerHTML=`<div><button data-action="toggle-inspector" aria-controls="inspector" aria-expanded="true" class="active">${icon('panel-right')}Scheda componente</button></div>`;$('.page-heading').append(studioToolbar);
 
-const options=document.createElement('details');options.className='viewer-options';options.innerHTML=`<summary aria-label="Strumenti di visualizzazione">${icon('sliders-horizontal')}<span>Strumenti</span></summary>`;const existingTools=$('.view-tools');existingTools.before(options);options.append(existingTools);
+const options=document.createElement('div');options.className='viewer-options';options.setAttribute('role','toolbar');options.setAttribute('aria-label','Strumenti di visualizzazione');const existingTools=$('.view-tools');existingTools.before(options);options.append(existingTools);
 
 if(matchMedia('(max-width:900px)').matches)toggleInspector();
 
@@ -267,7 +267,7 @@ $('#dialog').addEventListener('close',()=>$('#scan-host')?.scanDispose?.());
 
 // The component browser stays inside the fullscreen element.
 
-const viewerComponents=document.createElement('details');viewerComponents.className='viewer-components';viewerComponents.innerHTML=`<summary>${icon('list-tree')}<span>Componenti</span></summary><div class="viewer-component-list" aria-label="Componenti del propulsore"></div>`;$('.viewer').append(viewerComponents);
+const viewerComponents=document.createElement('section');viewerComponents.className='viewer-components';viewerComponents.setAttribute('aria-label','Esplora componenti');viewerComponents.innerHTML=`<div class="viewer-components-heading">${icon('list-tree')}<span>Componenti</span><b id="viewer-part-count"></b></div><div class="viewer-component-list" aria-label="Componenti del propulsore"></div>`;$('.viewer').append(viewerComponents);
 
 const viewerSheet=document.createElement('aside');viewerSheet.className='viewer-technical-card';viewerSheet.hidden=true;viewerSheet.setAttribute('aria-label','Scheda tecnica nel viewer');$('.viewer').append(viewerSheet);
 
@@ -281,7 +281,11 @@ actions['close-viewer-sheet']=()=>{$('.viewer-technical-card').hidden=true;};
 
 actions['focus-selected']=()=>viewer?.select(state.selected,true);
 
-document.addEventListener('fullscreenchange',()=>{if(document.fullscreenElement){$('.viewer').append($('#dialog'));renderViewerSheet(true);}else{document.body.append($('#dialog'));$('.viewer-technical-card').hidden=true;}refreshIcons();});
+document.addEventListener('fullscreenchange',()=>{if(document.fullscreenElement){$('.viewer').append($('#dialog'));renderViewerSheet(!state.car);}else{document.body.append($('#dialog'));$('.viewer-technical-card').hidden=true;}refreshIcons();});
 
 renderSystems();updateMetrics();refreshIcons();
 
+
+const realtimeButton=document.createElement('button');realtimeButton.dataset.action='realtime';realtimeButton.className='realtime-toggle';realtimeButton.setAttribute('aria-pressed','false');realtimeButton.setAttribute('title','Passa dal rallentatore didattico (3%) al tempo reale. Ad alti regimi possono apparire effetti stroboscopici.');realtimeButton.innerHTML=icon('timer')+'<span>Tempo reale</span>';$('.view-tools').append(realtimeButton);
+actions.realtime=()=>{if(!viewer)return;const real=viewer.playbackRate!==100;viewer.playbackRate=real?100:3;realtimeButton.setAttribute('aria-pressed',String(real));realtimeButton.classList.toggle('active',real);$('.animation-text>span').textContent=real?'Movimento in tempo reale':'Movimento al rallentatore';$('.road-speed-control>small').textContent=real?'0 — 100 km/h · tempo reale':'0 — 100 km/h · vista rallentata';};
+refreshIcons();
