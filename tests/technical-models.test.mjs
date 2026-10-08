@@ -43,6 +43,12 @@ test('Flussi spenti all’avvio, percorsi ancorati ai componenti e rami dei gas 
   flow.setEnabled(false);flow.update(.02,true);assert.equal(flow.group.visible,false);
   flow.setEnabled(true);v.rpm=0;flow.update(0,true);assert.equal(flow.group.visible,false);
   v.rpm=2800;flow.update(.02,false);assert.equal(flow.group.visible,false);
+  if(type!=='ev'){
+   Object.assign(v,{flows:flow,clock:{getDelta:()=>.016},composer:{render(){}},explosion:0,targetExplosion:0,section:true,playing:true,playbackRate:3});
+   flow.setEnabled(false);v.animate();assert.ok(v.chambers.every(({g})=>g.material.opacity===0));
+   flow.setEnabled(true);v.animate();assert.ok(v.chambers.some(({g})=>g.material.opacity>0));
+   v.rpm=0;v.animate();assert.ok(v.chambers.every(({g})=>g.material.opacity===0));
+  }
   flow.clear();v.root.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});
  }}finally{if(original===undefined)delete globalThis.document;else globalThis.document=original;}
 });

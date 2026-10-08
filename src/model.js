@@ -373,7 +373,7 @@ export class PowertrainViewer {
 
   this.valves.forEach(({g,index,side})=>{g.position.y=-.15*valveOpening(this.angle,index,side);});
 
-  this.chambers.forEach(({g,index})=>{const phase=(this.angle+phases[index])%(Math.PI*4);const expansion=phase<Math.PI;g.material.color.set(expansion?'#ff7b26':phase>Math.PI*2&&phase<Math.PI*3?'#36bdf1':'#d94237');g.material.emissive.copy(g.material.color);g.material.opacity=this.section&&!this.isolated&&!this.parts.pistons.userData.detached&&this.explosion<.1?(expansion?.55*Math.exp(-phase*.7):.09):0;g.scale.y=1+Math.max(0,Math.sin(phase))*.9;});
+  this.chambers.forEach(({g,index})=>{const phase=(this.angle+phases[index])%(Math.PI*4);const expansion=phase<Math.PI;g.material.color.set(expansion?'#ff7b26':phase>Math.PI*2&&phase<Math.PI*3?'#36bdf1':'#d94237');g.material.emissive.copy(g.material.color);g.material.opacity=this.flows?.enabled&&this.rpm>0&&this.section&&!this.isolated&&!this.parts.pistons.userData.detached&&this.explosion<.1?(expansion?.55*Math.exp(-phase*.7):.09):0;g.scale.y=1+Math.max(0,Math.sin(phase))*.9;});
 
 
 
