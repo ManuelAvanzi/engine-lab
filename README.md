@@ -108,7 +108,7 @@ Le tavole sono SVG accessibili originali. Riferimenti funzionali: https://www.bo
 
 ## Componenti persistenti e verifica della velocità
 - La lista componenti rimane aperta nel viewer, anche dopo la selezione e in fullscreen. Gli strumenti sono una barra orizzontale in alto. Il centro della proiezione riserva spazio alla lista senza interrompere lo sfondo.
-- Pneumatici con opacità 0,82 e cerchi 0,88, facce visibili da entrambi i lati; il corpo ruota resta unito al proprio asse.
+- Pneumatici con opacità massima 0,42 e cerchi 0,50: la trasparenza aumenta al centro delle superfici e diminuisce sui contorni. Le facce posteriori contribuiscono solo al 24% per evitare accumulo opaco. Materiale condiviso sui tre veicoli, incluse le ruote parametriche Tesla; il corpo ruota resta unito al proprio asse.
 - Cinematica indipendente dal frame rate: il tempo trascorso non viene più tagliato a 50 ms. I passaggi fra schede sospendono il tempo visualizzato, evitando salti al ritorno.
 - Rallentatore predefinito al 3%, esplicito nel viewer; pulsante Tempo reale per scala temporale 1:1. Lo slider imposta sempre la velocità reale convenzionale e il rapporto motore/ruote rimane lo stesso. A 100 km/h: circa 816 rpm ruote e 4081/4897/7346 rpm motore (benzina/ibrido/elettrico).
 - 14 test automatici, inclusa regressione con 10/30/60 fps e intervalli irregolari, velocità 0/50/100 e entrambe le scale temporali. Verifica nel browser: 487,06 rad alle ruote in 5,699 s a 100 km/h in tempo reale, coerenti con 85,47 rad/s attesi.

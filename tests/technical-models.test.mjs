@@ -40,7 +40,7 @@ test('I trasformati speculari conservano facce esterne e normali coerenti',()=>{
  }
 });
 
-test('Pneumatici con trasparenza lieve, quattro assi rettilinei e centri fissi in rotazione',async()=>{
+test('Pneumatici trasparenti con contorni leggibili, quattro assi rettilinei e centri fissi in rotazione',async()=>{
  const loader=new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).register(()=>({name:'test-without-textures',loadTexture:()=>Promise.resolve(new THREE.Texture())}));
  for(const [name,prepare]of [['tesla',prepareTesla],['ferrari',prepareFerrari],['concept',prepareConcept]]){
   const data=await readFile(new URL(`../src/models/${name}.glb`,import.meta.url));
@@ -48,7 +48,7 @@ test('Pneumatici con trasparenza lieve, quattro assi rettilinei e centri fissi i
   const car=prepare(scene);assert.equal(car.userData.wheels.length,4,name);
   for(const wheel of car.userData.wheels){
    const pos=wheel.position.clone();let tires=0;
-   wheel.traverse(m=>{if(!m.isMesh)return;assert.ok(m.geometry.attributes.position.count>0);if(m.material.userData.role==='tire'){tires++;assert.equal(m.material.side,THREE.DoubleSide);assert.equal(m.material.opacity,.82);assert.equal(m.material.transparent,true);assert.equal(m.material.depthWrite,false);}});assert.ok(tires>0,name);
+   wheel.traverse(m=>{if(!m.isMesh)return;assert.ok(m.geometry.attributes.position.count>0);if(m.material.userData.role==='tire'){tires++;assert.equal(m.material.side,THREE.DoubleSide);assert.equal(m.material.opacity,.42);assert.equal(m.material.transparent,true);assert.equal(m.material.depthWrite,false);}});assert.ok(tires>0,name);
    for(const angle of [0,.3,Math.PI,5]){wheel.quaternion.copy(wheelPose(angle));assert.ok(wheel.position.equals(pos));assert.ok(new THREE.Vector3(1,0,0).applyQuaternion(wheel.quaternion).distanceTo(new THREE.Vector3(1,0,0))<1e-10);}
   }
  }

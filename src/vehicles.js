@@ -1,4 +1,4 @@
-import {createDetailedWheel} from './wheels.js';
+import {createDetailedWheel,applyWheelTransparency} from './wheels.js';
 import {bakeGeometry} from './vehicle-geometry.js';
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
@@ -14,10 +14,11 @@ export const vehicleInfo={
 
 function finishMaterial(original,role){
  const tire=role==='tire',wheel=role==='wheel',glass=role==='glass';
- const m=new THREE.MeshStandardMaterial({color:tire?'#252a30':wheel?'#72818f':glass?'#8caebe':'#7da6bd',metalness:wheel?.25:0,roughness:tire?.95:wheel?.72:.86,transparent:true,opacity:tire?.82:wheel?.88:glass?.07:.1,depthWrite:false,side:tire||wheel?THREE.DoubleSide:THREE.FrontSide});
+ const m=new THREE.MeshStandardMaterial({color:tire?'#252a30':wheel?'#72818f':glass?'#8caebe':'#7da6bd',metalness:wheel?.25:0,roughness:tire?.95:wheel?.72:.86,transparent:true,opacity:glass?.07:.1,depthWrite:false,side:THREE.FrontSide});
  if(tire){m.normalMap=original.normalMap;m.normalScale.copy(original.normalScale||new THREE.Vector2(1,1));}
  m.envMapIntensity=.12;
  m.userData.role=role;m.userData.overviewOpacity=m.opacity;
+ if(tire||wheel){if(tire)m.color.set('#536571');applyWheelTransparency(m,role);}
  if(role==='body'||role==='glass'){
   m.onBeforeCompile=shader=>{shader.fragmentShader=shader.fragmentShader.replace('#include <opaque_fragment>',`diffuseColor.a *= 0.2 + 0.8 * pow(1.0 - abs(dot(normal, normalize(vViewPosition))), 2.0);
 #include <opaque_fragment>`);};
