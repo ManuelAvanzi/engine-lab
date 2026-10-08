@@ -1,0 +1,21 @@
+{
+  "tool": "Built-in ImageGen",
+  "purpose": "Immagini illustrative per la landing engineLab, non tavole tecniche.",
+  "assets": [
+    {
+      "file": "src/marketing/hero-classroom.webp",
+      "mobile": "src/marketing/hero-classroom-small.webp",
+      "prompt": "Create a cinematic photorealistic editorial photograph for engineLab, an Italian educational automotive laboratory website. Very wide landscape 16:9 composition. Modern technical college automotive classroom with graphite grey workbenches, a detailed cutaway inline four-cylinder engine on a tidy educational stand in the RIGHT half, two adult students and an instructor in dark blue work clothing examining it in the far right background, daylight through large high workshop windows, warm late afternoon highlights on brushed aluminium, realistic copper and steel details, no grease clutter. Leave the LEFT 50% mostly quiet dark workshop ambience for large white webpage text overlay. Premium real photography, natural muted teal-grey and warm amber, strong depth, professional engineering education, grounded non-futuristic scene. No readable text, no logos, no watermarks, no computer UI. Image is illustrative marketing photography, not a scientific plate."
+    },
+    {
+      "file": "src/marketing/hero-combustion.webp",
+      "mobile": "src/marketing/hero-combustion-small.webp",
+      "prompt": "Wide landscape 16:9 cinematic premium automotive product photograph. A highly detailed educational cutaway inline-four gasoline engine on a low industrial plinth in an atmospheric graphite workshop, object on RIGHT 55% of frame, left half dark soft negative space for webpage copy. Visible aluminium block section, exactly four pistons in a row, connecting rods, crankshaft, camshafts and timing assembly, substantial honest engineered metal forms, brushed satin silver and subdued copper details. Three-quarter view, strong sculptural softbox lighting, warm rim light, fine machining textures, subtle depth of field, clean elegant mechanical still life. No text, labels, diagrams, logos, flames, magical glowing lines or excessive mirror reflections. Photorealistic conceptual marketing image, not a blueprint."
+    },
+    {
+      "file": "src/marketing/hero-electric.webp",
+      "mobile": "src/marketing/hero-electric-small.webp",
+      "prompt": "Wide landscape 16:9 photorealistic premium automotive product photography for an educational electric propulsion laboratory. On the RIGHT half: an opened electric traction motor with circular stator, dense neatly wound copper coils, rotor slightly drawn out on its shaft, satin aluminium housing, a small inverter and low battery module behind it on a slate workbench. Dramatic but soft industrial studio lighting, cool graphite steel blue surroundings with natural warm copper accents. All objects detailed and believable, gently shallow depth of field. LEFT 50% mostly quiet dark workshop ambience for large white website text. Luxurious sober engineering photography, no sci-fi neon, no text, labels, UI, logos or watermarks. Conceptual illustration for a website, not a dimensionally certified diagram."
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-# Propulsion Lab
+# engineLab
 
 Laboratorio didattico 3D in italiano per istituti tecnici e professionali. Realizzato con JavaScript, Three.js e un server compatibile con Cloudflare Workers.
 
@@ -123,3 +123,10 @@ Le tavole sono SVG accessibili originali. Riferimenti funzionali: https://www.bo
 - CO₂: 2,35 kg per litro di benzina, arrotondamento di 8.887 g per gallone USA ([EPA](https://www.epa.gov/greenvehicles/comparison-your-car-vs-electric-vehicle)). EV a zero emissioni allo scarico; produzione elettrica e ciclo di vita esclusi. CO, NOx e idrocarburi non quantificati: richiedono modelli di combustione e post-trattamento assenti.
 - Tavole su fondo avorio, linee e numeri contrastati, spiegazione A cosa serve e tre punti in linguaggio semplice. Nomi tecnici opzionali e schema ingrandibile. Rimossa la scritta di fase del cilindro 1 dal viewer.
 - 17 test automatici, inclusi bilancio carburante/energia/CO₂, indipendenza dal passo temporale della temperatura e dei totali, pausa/zero/disconnessione, cambio modello e risposta a carico/velocità/raffreddamento.
+
+
+## Homepage engineLab
+
+La route `/` presenta engineLab con la struttura della home exhibitionLab: hero fotografica a tre scene, titolo misto sans/serif corsivo, introduzione didattica, tre passaggi e tre accessi ai propulsori. Font locali, menu mobile, pausa delle immagini e rispetto di prefers-reduced-motion. Il laboratorio si apre su `/lab`; le schede usano `?system=ice`, `?system=hybrid` e `?system=ev`. La home non importa Three.js né i modelli GLB.
+
+Le immagini della home sono illustrazioni create con ImageGen, distinte dalle tavole tecniche e dai modelli interattivi. Versioni WebP ottimizzate in `src/marketing/`; prompt e provenienza in `docs/landing-images.json`. Il logo del laboratorio riporta alla home. Il nome visibile e il titolo Sites sono engineLab; l'indirizzo Sites esistente viene conservato.

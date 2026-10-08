@@ -5,6 +5,17 @@ import assert from 'node:assert/strict';
 import {simulate,systems,scenarios} from '../src/data.js';
 import {handleRequest} from '../src/worker.js';
 import {motionStep,ratios,drivetrain,slowMotion} from '../src/motion.js';
+test('La home e il laboratorio hanno route distinte; i link ai propulsori conservano la pagina 3D',async()=>{
+ const assets={'/index.html':{body:'engineLab home',type:'text/html'},'/lab.html':{body:'engineLab laboratorio',type:'text/html'}};
+ assert.equal(await (await handleRequest(new Request('https://lab.example/'),{},assets)).text(),'engineLab home');
+ for(const path of ['/lab','/lab/','/lab?system=ice','/lab?system=hybrid','/lab?system=ev']){
+  const response=await handleRequest(new Request('https://lab.example'+path),{},assets);
+  assert.equal(response.status,200);assert.equal(await response.text(),'engineLab laboratorio');
+ }
+ const head=await handleRequest(new Request('https://lab.example/lab',{method:'HEAD'}),{},assets);
+ assert.equal(head.status,200);assert.equal(await head.text(),'');
+ assert.equal((await handleRequest(new Request('https://lab.example/missing'),{},assets)).status,404);
+});
 const base={scenario:'mixed',rpm:2800,load:50,ambient:20,cooling:true};
 test('La riduzione conserva il rapporto e il rallentamento su tutto il regime',()=>{
  for(const type of Object.keys(ratios))for(const rpm of [800,2800,6000,14000]){

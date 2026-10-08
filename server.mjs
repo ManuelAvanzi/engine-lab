@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import {handleRequest} from './src/worker.js';
 const root = path.resolve('dist');
-const types = { '.png': 'image/png', '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.map': 'application/json' };
+const types = { '.webp': 'image/webp', '.woff2': 'font/woff2', '.png': 'image/png', '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.map': 'application/json' };
 http.createServer(async (req, res) => {
   try {
     if(req.url.startsWith('/api/')){
@@ -12,7 +12,7 @@ http.createServer(async (req, res) => {
       const response=await handleRequest(request,process.env);res.writeHead(response.status,Object.fromEntries(response.headers));res.end(await response.text());return;
     }
     const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
-    const file = path.resolve(root, '.' + (pathname === '/' ? '/index.html' : pathname));
+    const file = path.resolve(root, '.' + (pathname === '/' ? '/index.html' : ['/lab','/lab/'].includes(pathname) ? '/lab.html' : pathname));
     if (!file.startsWith(root + path.sep)) { res.writeHead(403); res.end(); return; }
     const data = await readFile(file);
     res.writeHead(200, { 'Content-Type': types[path.extname(file)] || 'application/octet-stream' }); res.end(data);

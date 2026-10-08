@@ -22,6 +22,6 @@ export async function handleRequest(request,env={},assets={}) {
   }catch{return json({error:'Il tutor non ha risposto in tempo. Riprova tra poco.'},504);}
  }
  if(request.method!=='GET'&&request.method!=='HEAD')return new Response('Metodo non consentito',{status:405});
- const file=url.pathname==='/'?'/index.html':url.pathname;const asset=assets[file];if(!asset)return new Response('Risorsa non trovata',{status:404});
+ const file=url.pathname==='/'?'/index.html':['/lab','/lab/'].includes(url.pathname)?'/lab.html':url.pathname;const asset=assets[file];if(!asset)return new Response('Risorsa non trovata',{status:404});
  return new Response(request.method==='HEAD'?null:asset.binary?Uint8Array.from(atob(asset.body),c=>c.charCodeAt(0)):asset.body,{headers:{'Content-Type':asset.type,'X-Content-Type-Options':'nosniff','Referrer-Policy':'strict-origin-when-cross-origin','Cache-Control':'public, max-age=0, must-revalidate'}});
 }
