@@ -89,7 +89,7 @@ export class Presentation {
    if(!displaced&&!(this.focused&&item.id===v.selected))continue;
    const center=part.localToWorld(item.anchor.clone()),rest=center.clone().sub(delta);
    if(displaced){const attr=item.line.geometry.attributes.position;attr.setXYZ(0,rest.x,rest.y,rest.z);attr.setXYZ(1,center.x,center.y,center.z);attr.needsUpdate=true;item.line.computeLineDistances();item.line.geometry.computeBoundingSphere();item.line.visible=true;}
-   if(count>=3||(!displaced&&!(this.focused&&item.id===v.selected)))continue;
+   if(item.id!==v.infoId||count>=3||(!displaced&&!(this.focused&&item.id===v.selected)))continue;
    const point=center.clone().project(v.camera);if(point.z< -1||point.z>1||Math.abs(point.x)>1||Math.abs(point.y)>1)continue;
    const x=(point.x*.5+.5)*width,y=(-point.y*.5+.5)*height;
    const w=Math.min(175,width*.4),h=28;

@@ -38,7 +38,7 @@ import {FlowAnimation} from './flows.js';
 
 import {addInsideDetails,applyInside} from './inside.js';
 
-import {motionStep,roadMotion} from './motion.js';
+import {motionStep,roadMotion,valveOpening} from './motion.js';
 
 import {loadVehicle, vehicleInfo} from './vehicles.js';
 
@@ -371,7 +371,7 @@ export class PowertrainViewer {
 
   const phases=[0,Math.PI*3,Math.PI,Math.PI*2];
 
-  this.valves.forEach(({g,index,side})=>{const phase=(this.angle+phases[index])%(Math.PI*4);const centre=side===0?Math.PI*2.5:Math.PI*1.5;g.position.y=-.15*Math.max(0,1-Math.abs(phase-centre)/(Math.PI*.48));});
+  this.valves.forEach(({g,index,side})=>{g.position.y=-.15*valveOpening(this.angle,index,side);});
 
   this.chambers.forEach(({g,index})=>{const phase=(this.angle+phases[index])%(Math.PI*4);const expansion=phase<Math.PI;g.material.color.set(expansion?'#ff7b26':phase>Math.PI*2&&phase<Math.PI*3?'#36bdf1':'#d94237');g.material.emissive.copy(g.material.color);g.material.opacity=this.section&&!this.isolated&&!this.parts.pistons.userData.detached&&this.explosion<.1?(expansion?.55*Math.exp(-phase*.7):.09):0;g.scale.y=1+Math.max(0,Math.sin(phase))*.9;});
 

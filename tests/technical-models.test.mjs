@@ -11,8 +11,41 @@ import {bakeGeometry,wheelPose} from '../src/vehicle-geometry.js';
 import {prepareTesla,prepareFerrari,prepareConcept} from '../src/vehicles.js';
 import {sheetIds,technicalSvg} from '../src/technical-sheets.js';
 import {systems} from '../src/data.js';
-import {ratios,motionStep,roadMotion} from '../src/motion.js';
+import {ratios,motionStep,roadMotion,valveOpening} from '../src/motion.js';
+import {FlowAnimation} from '../src/flows.js';
 import {createAnnotationAnchor} from '../src/presentation.js';
+
+test('Flussi spenti all’avvio, percorsi ancorati ai componenti e rami dei gas sincronizzati alle valvole',()=>{
+ const original=globalThis.document;globalThis.document={addEventListener(){},getElementById(){return null;}};
+ try{for(const type of Object.keys(systems)){
+  const v=Object.create(PowertrainViewer.prototype);
+  Object.assign(v,{type,root:new THREE.Group(),scene:new THREE.Scene(),car:new THREE.Group(),parts:{},meshes:[],pistons:[],rods:[],rotating:[],valves:[],chambers:[],rpm:2800,angle:0,wheelAngle:0});
+  if(type==='ev')v.electric();else{v.engine(false);if(type==='hybrid')v.hybrid();}
+  refineTechnicalEngine(v);refineElectricSystems(v);v.root.position.set(2,.3,-1);v.root.scale.setScalar(.7);
+  const flow=new FlowAnimation(v);flow.rebuild();assert.equal(flow.enabled,false);assert.equal(flow.group.visible,false);
+  const gas=flow.paths.filter(p=>p.gate);assert.equal(gas.length,type==='ev'?0:8);
+  for(const p of gas){
+   const cylinder=v.parts.head.worldToLocal((p.kind==='air'?p.points.at(-1):p.points[0]).clone());
+   assert.ok(Math.abs(cylinder.y-1.8)<1e-10);assert.ok(Math.abs(cylinder.z)<1e-10);
+  }
+  const electric=flow.paths.filter(p=>p.kind==='electric');assert.equal(electric.length,type==='ice'?0:2);
+  if(electric.length){
+   assert.ok(electric[0].points.at(-1).distanceTo(electric[1].points[0])<1e-10);
+   const motorBox=new THREE.Box3().setFromObject(v.parts[type==='ev'?'stator':'motor']);assert.ok(motorBox.containsPoint(electric[1].points.at(-1)),type);
+  }
+  if(type==='hybrid'){
+   const torque=flow.paths.filter(p=>p.kind==='torque');assert.ok(torque[0].points.at(-1).equals(torque[1].points.at(-1)));
+   assert.ok(torque[0].points[0].distanceTo(v.parts.crank.localToWorld(new THREE.Vector3(2,.43,0)))<1e-10);
+   assert.ok(torque[1].points[0].distanceTo(v.parts.motor.localToWorld(new THREE.Vector3(3.425,.43,0)))<1e-10);
+  }
+  flow.setEnabled(true);flow.wasAssembled=true;
+  for(let angle=0;angle<Math.PI*4;angle+=.17){v.angle=angle;flow.update(.02,true);for(const p of gas)assert.equal(p.group.visible,p.kind===flow.selected&&valveOpening(angle,p.gate.index,p.gate.side)>0);}
+  flow.setEnabled(false);flow.update(.02,true);assert.equal(flow.group.visible,false);
+  flow.setEnabled(true);v.rpm=0;flow.update(0,true);assert.equal(flow.group.visible,false);
+  v.rpm=2800;flow.update(.02,false);assert.equal(flow.group.visible,false);
+  flow.clear();v.root.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});
+ }}finally{if(original===undefined)delete globalThis.document;else globalThis.document=original;}
+});
 
 test('Le etichette ignorano il ciclo dei pezzi mobili e seguono esplosione e trasformazioni del modello',()=>{
  const root=new THREE.Group(),part=new THREE.Group(),piston=new THREE.Mesh(new THREE.BoxGeometry(.6,.4,.6));

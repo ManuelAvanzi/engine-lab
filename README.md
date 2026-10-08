@@ -48,7 +48,7 @@ Propulsori schematici originali, non CAD industriali né modelli in scala reale.
 
 L'animazione riproduce il meccanismo biella-manovella, non la combustione fluidodinamica. Gli rpm modificano i valori del modello e la velocità dei movimenti, che restano rallentati per leggibilità. In vista esplosa i collegamenti sono deliberatamente separati.
 
-Le ruote seguono il motore con pausa e velocità condivise. I rapporti sono illustrativi: 5:1 termico, 6:1 ibrido, 9:1 elettrico. Separare o spostare le parti sospende ruote e flussi fino alla ricomposizione. Le frecce indicano aria aspirata (blu), gas di scarico (corallo), energia elettrica (turchese) e coppia meccanica (ambra). I percorsi sono schemi funzionali, non tubazioni o cablaggi OEM; non vengono esportati né mostrati in AR. Il comando Flussi consente di nasconderli.
+Le ruote seguono il motore con pausa e velocità condivise. I rapporti sono illustrativi: 5:1 termico, 6:1 ibrido, 9:1 elettrico. Separare o spostare le parti sospende ruote e flussi fino alla ricomposizione. Le frecce indicano aria aspirata (blu), gas di scarico (corallo), energia elettrica (turchese) e coppia meccanica (ambra). I percorsi sono schemi funzionali, non tubazioni o cablaggi OEM; non vengono esportati né mostrati in AR. I flussi sono nascosti all’avvio, al cambio di propulsore e al ripristino. Il comando Mostra flussi / Nascondi flussi li attiva su richiesta; da fermi non ci sono scie in movimento. In schermo intero è disponibile anche il selettore del percorso.
 
 WebXR richiede HTTPS, browser e hardware compatibili, autorizzazione e supporto hit-test. Quick Look è un'esportazione statica; non porta con sé quiz o interfaccia del tutor. L'esportazione include le parti visibili nella configurazione corrente. La verifica su tablet fisico e Meta Quest 3 resta da effettuare.
 
@@ -68,7 +68,7 @@ Per rigenerare: scaricare `tesla-source.glb` da https://raw.githubusercontent.co
 
 La carrozzeria usa trasparenza graduata sui contorni e nasconde gli interni. La selezione di una parte avvicina la camera con una transizione interrompibile ruotando il modello; `Vista generale` ripristina il contesto completo. Nei dettagli le ruote vengono nascoste per non coprire il propulsore. I movimenti rispettano la preferenza di riduzione delle animazioni.
 
-La vista esplosa usa direzioni coerenti per gli assiemi, guide tratteggiate verso le sedi originali e al massimo tre etichette, con priorità alla selezione. Le annotazioni non fanno parte delle esportazioni. La scheda è richiudibile e parte chiusa su tablet; i comandi secondari sono sotto `Strumenti`.
+La vista esplosa usa direzioni coerenti per gli assiemi e guide tratteggiate verso le sedi originali. Le scritte sopra il modello sono nascoste: ogni riga delle liste componenti ha un pulsante ⓘ che apre e richiude una sola scheda con testo e schema tecnico espandibile. Il passaggio del mouse conserva la trasparenza senza aprire testi. L’etichetta del componente compare soltanto se la sua scheda è stata richiesta. Le annotazioni seguono la posizione dell’assieme ma ignorano le oscillazioni dei pezzi interni e non fanno parte delle esportazioni.
 
 ## Percorsi guidati e rapporto di trasmissione
 
@@ -130,3 +130,10 @@ Le tavole sono SVG accessibili originali. Riferimenti funzionali: https://www.bo
 La route `/` presenta engineLab con la struttura della home exhibitionLab: hero fotografica a tre scene, titolo misto sans/serif corsivo, introduzione didattica, tre passaggi e tre accessi ai propulsori. Font locali, menu mobile, pausa delle immagini e rispetto di prefers-reduced-motion. Il laboratorio si apre su `/lab`; le schede usano `?system=ice`, `?system=hybrid` e `?system=ev`. La home non importa Three.js né i modelli GLB.
 
 Le immagini della home sono illustrazioni create con ImageGen, distinte dalle tavole tecniche e dai modelli interattivi. Versioni WebP ottimizzate in `src/marketing/`; prompt e provenienza in `docs/landing-images.json`. Il logo del laboratorio riporta alla home. Il nome visibile e il titolo Sites sono engineLab; l'indirizzo Sites esistente viene conservato.
+
+
+### Verifica dei percorsi luminosi
+
+I rami di aspirazione entrano nei quattro cilindri attraverso le valvole; i rami di scarico escono dalle valvole verso il collettore. Usano la stessa funzione di apertura delle valvole del modello. Le coordinate appartengono ai singoli componenti, includendo la traslazione dell’ibrido. Nell’elettrico il percorso segue batteria → inverter → statore; nell’ibrido i contributi meccanici del termico e del motore elettrico convergono nella trasmissione. Le scie rappresentano la trazione e non animano la rigenerazione; non sono una simulazione fluidodinamica né un modello della corrente alternata. I tratti verso le ruote sono collegamenti funzionali schematici, non tubazioni o geometrie OEM.
+
+Riferimenti verificati: [NASA, valvole di aspirazione e scarico](https://www1.grc.nasa.gov/beginners-guide-to-aeronautics/combustion-chamber/), [DOE, conversione DC/AC dell’inverter](https://www.energy.gov/cmei/vehicles/power-electronics-research-and-development), [AFDC, componenti e trasmissione dei veicoli ibridi](https://afdc.energy.gov/vehicles/how-do-hybrid-electric-cars-work).

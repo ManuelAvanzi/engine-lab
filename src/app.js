@@ -17,7 +17,7 @@ const icon=(name)=>`<i data-lucide="${name}"></i>`;
 
 const format=(n,d=0)=>new Intl.NumberFormat('it-IT',{minimumFractionDigits:d,maximumFractionDigits:d}).format(n);
 
-const state={type:'ice',selected:'pistons',playing:!matchMedia('(prefers-reduced-motion: reduce)').matches,section:true,risk:false,isolated:false,car:true,drag:false,explode:0,scenario:'mixed',speed:0,rpm:0,load:50,ambient:20,cooling:true,quiz:0,answers:{}};
+const state={type:'ice',selected:'pistons',infoId:null,playing:!matchMedia('(prefers-reduced-motion: reduce)').matches,section:true,risk:false,isolated:false,car:true,drag:false,explode:0,scenario:'mixed',speed:0,rpm:0,load:50,ambient:20,cooling:true,quiz:0,answers:{}};
 
 let viewer,toastTimer,aiAvailable=false;
 
@@ -29,12 +29,12 @@ function renderSystems(){
 
  $('#systems').innerHTML=Object.entries(systems).map(([id,s])=>`<button class="system-button ${id===state.type?'active':''}" data-system="${id}" aria-pressed="${id===state.type}"><span class="sys-icon">${icon(s.icon)}</span><span><strong>${s.name}</strong><small>${id==='ice'?'Combustione interna':id==='hybrid'?'Termico + elettrico':'100% elettrico'}</small></span>${id===state.type?icon('chevron-right'):''}</button>`).join('');
 
- $('#component-list').innerHTML=systems[state.type].components.map(id=>`<button class="component-button ${id===state.selected?'active':''}" data-component="${id}" aria-pressed="${id===state.selected}" style="--part-color:${components[id].color}"><span class="part-dot"></span>${components[id].name}${id===state.selected?icon('chevron-right'):''}</button>`).join('');
+ $('#component-list').innerHTML=systems[state.type].components.map(id=>`<div class="component-row"><button class="component-button ${id===state.selected?'active':''}" data-component="${id}" aria-pressed="${id===state.selected}" style="--part-color:${components[id].color}"><span class="part-dot"></span>${components[id].name}${id===state.selected?icon('chevron-right'):''}</button>${componentInfoButton(id)}</div>`).join('');
 
  $('#component-count').textContent=systems[state.type].components.length;if($('#viewer-part-count'))$('#viewer-part-count').textContent=systems[state.type].components.length;
  const scan=$('.technical-scan-button');if(scan)scan.hidden=state.type==='ev';
 
- const list=$('.viewer-component-list');if(list)list.innerHTML=systems[state.type].components.map((id,i)=>`<button data-component="${id}" aria-pressed="${id===state.selected}"><span>${String(i+1).padStart(2,'0')}</span>${components[id].name}</button>`).join('');
+ const list=$('.viewer-component-list');if(list)list.innerHTML=systems[state.type].components.map((id,i)=>`<div class="component-row"><button class="component-name" data-component="${id}" aria-pressed="${id===state.selected}"><span>${String(i+1).padStart(2,'0')}</span>${components[id].name}</button>${componentInfoButton(id)}</div>`).join('');
 
 }
 
@@ -50,33 +50,33 @@ function renderInsidePanel(){
 
  $('#inspector .relationship')?.before(panel);
 
- renderInsideCaption();
+
 
 }
 
-function renderInsideCaption(){
-
- if(!viewer)return;const id=viewer.hoverId||viewer.insideId,n=insideNotes[id];
-
- let card=$('#inside-caption');if(!card){card=document.createElement('aside');card.id='inside-caption';card.className='inside-caption';$('.viewer').append(card);}
-
- card.hidden=!n;card.classList.toggle('hover-preview',!!viewer.hoverId);
-
- card.innerHTML=n?`<small>STRUTTURA INTERNA · ${components[id].name}</small><strong>${n[0]}</strong><p>${n[1]}</p><span>${n[2]}</span><em>Schema didattico semplificato${viewer.hoverId?' · Sposta il mouse per tornare alla superficie':''}</em>`:'';
-
+function componentInfoButton(id){const open=state.infoId===id;return `<button class="component-info" data-component-info="${id}" aria-label="${open?'Chiudi':'Apri'} informazioni: ${components[id].name}" aria-expanded="${open}" aria-controls="viewer-component-info" title="Informazioni su ${components[id].name}">${icon('info')}</button>`;}
+let infoOrigin='.viewer-component-list';
+function toggleComponentInfo(id){
+ if(!systems[state.type].components.includes(id))return;
+ infoOrigin=document.activeElement?.closest('#component-list')?'#component-list':'.viewer-component-list';
+ const close=state.infoId===id;
+ if(!close)selectComponent(id,false);
+ state.infoId=close?null:id;if(viewer)viewer.infoId=state.infoId;
+ renderSystems();renderViewerSheet();refreshIcons();$(infoOrigin)?.querySelector(`[data-component-info="${id}"]`)?.focus({preventScroll:true});
 }
-
-
+function closeComponentInfo(){const id=state.infoId;state.infoId=null;if(viewer)viewer.infoId=null;renderSystems();renderViewerSheet();refreshIcons();if(id)$(infoOrigin)?.querySelector(`[data-component-info="${id}"]`)?.focus({preventScroll:true});}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.infoId&&!$('#dialog').open)closeComponentInfo();});
 
 function renderInspector(){const c=components[state.selected];$('#inspector').innerHTML=`<div class="inspector-header"><span class="eyebrow">ESPLORA IL COMPONENTE</span>${icon('focus')}</div><div class="part-main"><div class="part-symbol">${icon(state.type==='ev'?'zap':'component')}</div><h2>${c.name}</h2><span class="category">${c.category}</span></div>${technicalFigure(state.selected)}<p class="description">${c.description}</p><div class="material"><span>Materiale</span><strong>${c.material}</strong></div><div class="part-actions"><button data-action="isolate" aria-pressed="${state.isolated}" class="${state.isolated?'selected':''}">${icon('focus')}${state.isolated?'Mostra tutto':'Isola'}</button><button data-action="part-explain">${icon('book-open')}Approfondisci</button></div><div class="relationship"><h3>Come si collega al sistema</h3><p>${c.relationship}</p></div><div class="risk-note"><h3>${icon('triangle-alert')}DA TENERE D’OCCHIO</h3><p>${c.risk}</p></div>`;renderInsidePanel();}
 
 function renderPartControls(){const parent=$('#inspector');if(!parent||!viewer)return;parent.querySelector('.manipulation')?.remove();const p=viewer.parts[state.selected];if(!p)return;const panel=document.createElement('div');panel.className='manipulation';panel.innerHTML=`<div class="manipulation-heading">SMONTA IL COMPONENTE</div><div class="part-actions"><button data-action="detach" class="${p.userData.detached?'selected':''}">${icon(p.userData.detached?'package-check':'move-up-right')}${p.userData.detached?'Reinserisci':'Estrai'}</button><button data-action="move-part" class="${state.drag?'selected':''}">${icon('hand')}Sposta</button></div><details class="position-controls"><summary>Posizione precisa · X / Y / Z</summary>${['x','y','z'].map(axis=>`<label>${axis.toUpperCase()}<input aria-label="Posizione ${axis.toUpperCase()} del componente" data-part-axis="${axis}" type="range" min="-5" max="5" step="0.1" value="${p.userData.manualOffset[axis]}"><output>${p.userData.manualOffset[axis].toFixed(1)}</output></label>`).join('')}</details><button class="text-button" data-action="reassemble">${icon('rotate-ccw')}Ricomponi tutti i componenti</button></div>`;parent.querySelector('.relationship').before(panel);}
 
-function selectComponent(id,focus=true){if(!systems[state.type].components.includes(id))return;state.selected=id;if(focus&&viewer?.carMode){state.car=false;viewer.setCar(false);syncToggles();}viewer?.select(id,false);renderSystems();renderInspector();renderPartControls();renderViewerSheet(focus);if(focus){viewer?.presentation?.focus();if(!document.fullscreenElement&&!matchMedia('(max-width:900px)').matches){$('.workspace').classList.remove('inspector-collapsed');$('[data-action="toggle-inspector"]')?.setAttribute('aria-expanded','true');$('#inspector').scrollTop=0;}}$('#tutor-prompt').textContent=components[id].point;refreshIcons();}
+function selectComponent(id,focus=true){if(!systems[state.type].components.includes(id))return;if(state.selected!==id){state.infoId=null;if(viewer)viewer.infoId=null;}state.selected=id;if(focus&&viewer?.carMode){state.car=false;viewer.setCar(false);syncToggles();}viewer?.select(id,false);renderSystems();renderInspector();renderPartControls();renderViewerSheet();if(focus){viewer?.presentation?.focus();if(!document.fullscreenElement&&!matchMedia('(max-width:900px)').matches){$('.workspace').classList.remove('inspector-collapsed');$('[data-action="toggle-inspector"]')?.setAttribute('aria-expanded','true');$('#inspector').scrollTop=0;}}$('#tutor-prompt').textContent=components[id].point;refreshIcons();}
 
-function renderViewerSheet(open=false){const card=$('.viewer-technical-card');if(!card)return;card.innerHTML=`<header><span>COMPONENTE SELEZIONATO</span><button data-action="close-viewer-sheet" aria-label="Chiudi scheda nel viewer">×</button></header><h3>${components[state.selected].name}</h3>${technicalFigure(state.selected)}<button class="sheet-focus" data-action="focus-selected">Inquadra componente</button>`;card.hidden=!open;}
+function renderViewerSheet(){const card=$('.viewer-technical-card');if(!card)return;const id=state.infoId,n=insideNotes[id];card.hidden=!id;if(!id){card.replaceChildren();return;}card.innerHTML=`<header><span>INFORMAZIONI COMPONENTE</span><button data-action="close-viewer-sheet" aria-label="Chiudi informazioni componente">×</button></header><h3>${components[id].name}</h3><div class="component-info-note"><strong>${n[0]}</strong><p>${n[1]}</p><small>${n[2]}</small></div><details class="component-info-drawing"><summary>Schema tecnico e spiegazione</summary>${technicalFigure(id)}</details><button class="sheet-focus" data-action="focus-selected">Inquadra componente</button>`;}
 
-function selectSystem(type){if(!systems[type])throw new Error('Sistema non valido');state.type=type;state.selected=type==='ev'?'rotor':'pistons';state.isolated=false;state.explode=0;$('#explode').value=0;$('#explode-value').textContent='0%';const s=systems[type];$('#model-title').textContent=s.name;$('#model-subtitle').textContent=s.subtitle;$('#model-tag').textContent=s.tag;$('#breadcrumb-system').textContent=s.name;$('#rpm').max=s.maxRpm;state.rpm=Math.min(state.rpm,s.maxRpm);$('#rpm').value=state.rpm;viewer?.build(type);viewer?.setSection(state.section);viewer?.setRisk(state.risk);selectComponent(state.selected,false);updateMetrics();}
+
+function selectSystem(type){if(!systems[type])throw new Error('Sistema non valido');state.type=type;state.infoId=null;if(viewer){viewer.infoId=null;viewer.flows.setEnabled(false);}state.selected=type==='ev'?'rotor':'pistons';state.isolated=false;state.explode=0;$('#explode').value=0;$('#explode-value').textContent='0%';const s=systems[type];$('#model-title').textContent=s.name;$('#model-subtitle').textContent=s.subtitle;$('#model-tag').textContent=s.tag;$('#breadcrumb-system').textContent=s.name;$('#rpm').max=s.maxRpm;state.rpm=Math.min(state.rpm,s.maxRpm);$('#rpm').value=state.rpm;viewer?.build(type);viewer?.setSection(state.section);viewer?.setRisk(state.risk);selectComponent(state.selected,false);updateMetrics();}
 
 function updateMetrics(){$('#play-label').textContent=!state.playing?'Animazione in pausa':state.speed===0?'Veicolo fermo':'Animazione in corso';state.rpm=roadMotion(state.type,state.speed).rpm;$('#rpm').value=state.rpm;if($('#road-speed')){$('#road-speed').value=state.speed;$('#road-speed-value').textContent=`${format(state.speed,1)} km/h`;}if(viewer){viewer.rpm=state.rpm;viewer.roadSpeed=state.speed;}const readout=$('#motion-readout');if(readout){const motion=roadMotion(state.type,state.speed);readout.innerHTML=`<span>Motore <b>${format(motion.rpm)} rpm</b></span><span>Ruote <b id="wheel-rpm-readout">${format(motion.wheelRpm)} rpm</b></span><small>Rapporto ${ratios[state.type]}:1 · Ø ruota 0,65 m</small>`;}const m=simulate(state.type,state);$('#rpm-value').textContent=`${format(state.rpm)} rpm`;$('#load-value').textContent=`${state.load}%`;viewer?.setRisk(state.risk,m.warning);refreshIcons();}
 
@@ -116,11 +116,11 @@ const actions={
 
  'focus-component':()=>viewer?.presentation.focus(),
 
- 'toggle-flows':()=>{if(!viewer)return;viewer.flows.enabled=!viewer.flows.enabled;const b=$('[data-action="toggle-flows"]');b.setAttribute('aria-pressed',String(viewer.flows.enabled));b.classList.toggle('active',viewer.flows.enabled);},
+ 'toggle-flows':()=>{if(viewer)viewer.flows.setEnabled(!viewer.flows.enabled);},
 
  lab:()=>$('#dialog').close(),compare,lessons,explain,'part-explain':explain,quiz,method,advanced,ar,chat,'energy-flow':energyFlow,
 
- help:()=>modal('Esplora il laboratorio',`<h3>1. Scegli una tecnologia</h3><p>Usa i tre sistemi a sinistra. Su tablet i selettori sono sopra al modello.</p><h3>2. Guarda dentro il motore</h3><p>Trascina il modello per ruotarlo. La rotella o il gesto a due dita modificano lo zoom. Seleziona un componente sul modello o nell’elenco. Usa Isola per osservarlo da solo.</p><h3>3. Scomponi e metti in movimento</h3><p>Il cursore Vista esplosa separa i gruppi. Il pulsante play avvia un movimento rallentato; il pulsante sezione rende trasparente il carter.</p><h3>4. Sperimenta</h3><p>Cambia scenario, carico, regime e raffreddamento. Confronta i risultati e prova le domande del tutor guidato.</p>`,'GUIDA RAPIDA'),
+ help:()=>modal('Esplora il laboratorio',`<h3>1. Scegli una tecnologia</h3><p>Usa i tre sistemi a sinistra. Su tablet i selettori sono sopra al modello.</p><h3>2. Guarda dentro il motore</h3><p>Trascina il modello per ruotarlo. La rotella o il gesto a due dita modificano lo zoom. Seleziona un componente sul modello o nell’elenco. Usa Isola per osservarlo da solo. Il pulsante ⓘ accanto a ogni nome apre e chiude le informazioni: passare il mouse non apre testi.</p><h3>3. Scomponi e metti in movimento</h3><p>Il cursore Vista esplosa separa i gruppi. Mostra flussi attiva i percorsi colorati, inizialmente nascosti. Il pulsante play avvia un movimento rallentato; il pulsante sezione rende trasparente il carter.</p><h3>4. Sperimenta</h3><p>Cambia scenario, carico, regime e raffreddamento. Confronta i risultati e prova le domande del tutor guidato.</p>`,'GUIDA RAPIDA'),
 
  'tutor-info':()=>modal('Un tutor che segue ciò che osservi',`<p>Le schede e i quiz sono contenuti didattici locali con feedback guidato.</p><p>${aiAvailable?'Il servizio AI è collegato e può rispondere a domande contestuali nella sezione Chiedi al tutor AI.':'La conversazione con intelligenza artificiale non è ancora collegata. Il collegamento lato server è predisposto: manca l’attivazione del servizio. Le risposte guidate non sono generate da AI.'}</p><button class="primary-button" data-action="explain">Apri una spiegazione contestuale</button>`,'STATO DEL TUTOR'),
 
@@ -136,7 +136,7 @@ const actions={
 
  reassemble:()=>{viewer?.resetParts();state.explode=0;viewer?.setExplosion(0);$('#explode').value=0;$('#explode-value').textContent='0%';state.isolated=false;viewer?.isolate(false);selectComponent(state.selected);toast('Tutti i componenti tornano nelle loro sedi.');},
 
- car:()=>{state.car=true;state.isolated=false;viewer?.isolate(false);viewer?.setCar(true);renderViewerSheet(false);renderInspector();renderPartControls();syncToggles();},
+ car:()=>{state.car=true;state.isolated=false;viewer?.isolate(false);viewer?.setCar(true);closeComponentInfo();renderInspector();renderPartControls();syncToggles();},
 
  'engine-view':()=>{state.car=false;viewer?.setCar(false);syncToggles();},
 
@@ -152,7 +152,7 @@ const actions={
 
  'reset-camera':()=>{viewer?.setInside(false);viewer?.resetCamera();renderInsidePanel();refreshIcons();},
 
- reset:()=>{state.explode=0;state.isolated=false;state.risk=false;state.section=true;state.drag=false;viewer?.resetParts();viewer?.setDragMode(false);viewer?.setExplosion(0);viewer?.isolate(false);viewer?.setSection(true);viewer?.setRisk(false);viewer?.resetCamera();$('#explode').value=0;$('#explode-value').textContent='0%';renderInspector();renderPartControls();syncToggles();},
+ reset:()=>{closeComponentInfo();viewer?.flows.setEnabled(false);state.explode=0;state.isolated=false;state.risk=false;state.section=true;state.drag=false;viewer?.resetParts();viewer?.setDragMode(false);viewer?.setExplosion(0);viewer?.isolate(false);viewer?.setSection(true);viewer?.setRisk(false);viewer?.resetCamera();$('#explode').value=0;$('#explode-value').textContent='0%';renderInspector();renderPartControls();syncToggles();},
 
  fullscreen:async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await $('.viewer').requestFullscreen();}catch{toast('Le dimensioni della vista si adattano già allo schermo; il browser non supporta lo schermo intero.');}},
 
@@ -168,7 +168,7 @@ const actions={
 
 };
 
-document.addEventListener('click',async e=>{const el=e.target.closest('button, input[data-action]');if(!el)return;if(el.dataset.system)selectSystem(el.dataset.system);if(el.dataset.component)selectComponent(el.dataset.component);if(el.dataset.action)await actions[el.dataset.action]?.();if(el.dataset.chooseSystem){selectSystem(el.dataset.chooseSystem);$('#dialog').close();}if(el.dataset.answer!==undefined){if(state.answers[state.quiz]!==undefined)return;state.answers[state.quiz]=Number(el.dataset.answer);quiz();}if(el.dataset.lesson){$('#dialog').close();if(el.dataset.lesson==='motion'){selectSystem('ice');state.playing=true;viewer.playing=true;state.section=true;viewer.setSection(true);syncToggles();toast('Segui un pistone e la sua biella per un giro completo.');}else if(el.dataset.lesson==='energy'){state.scenario='city';$('#scenario').value='city';applyScenario();compare();}else advanced();}});
+document.addEventListener('click',async e=>{const el=e.target.closest('button, input[data-action]');if(!el)return;if(el.dataset.system)selectSystem(el.dataset.system);if(el.dataset.component)selectComponent(el.dataset.component);if(el.dataset.componentInfo)toggleComponentInfo(el.dataset.componentInfo);if(el.dataset.action)await actions[el.dataset.action]?.();if(el.dataset.chooseSystem){selectSystem(el.dataset.chooseSystem);$('#dialog').close();}if(el.dataset.answer!==undefined){if(state.answers[state.quiz]!==undefined)return;state.answers[state.quiz]=Number(el.dataset.answer);quiz();}if(el.dataset.lesson){$('#dialog').close();if(el.dataset.lesson==='motion'){selectSystem('ice');state.playing=true;viewer.playing=true;state.section=true;viewer.setSection(true);syncToggles();toast('Segui un pistone e la sua biella per un giro completo.');}else if(el.dataset.lesson==='energy'){state.scenario='city';$('#scenario').value='city';applyScenario();compare();}else advanced();}});
 
 function applyScenario(){const s=scenarios[state.scenario];state.load=s.load;state.speed=Math.min(100,s.speed);state.rpm=roadMotion(state.type,state.speed).rpm;state.ambient=s.ambient;$('#rpm').value=state.rpm;$('#load').value=state.load;updateMetrics();}
 
@@ -239,9 +239,10 @@ refreshIcons();
 
 const flowLegend=document.createElement('section');flowLegend.id='flow-legend';flowLegend.className='flow-legend';flowLegend.setAttribute('aria-label','Legenda dei flussi luminosi');$('.page-heading').after(flowLegend);
 
-const flowToggle=document.createElement('button');flowToggle.dataset.action='toggle-flows';flowToggle.className='active';flowToggle.setAttribute('aria-pressed','true');flowToggle.setAttribute('aria-label','Mostra flussi luminosi');flowToggle.innerHTML=`${icon('route')}Flussi`;
+const flowToggle=document.createElement('button');flowToggle.dataset.action='toggle-flows';flowToggle.setAttribute('aria-pressed','false');flowToggle.setAttribute('aria-label','Mostra flussi');flowToggle.innerHTML=`${icon('route')}<span>Mostra flussi</span>`;
 
 $('.scene-actionbar').prepend(flowToggle);viewer?.flows.renderLegend();refreshIcons();
+const flowSelect=document.createElement('select');flowSelect.id='flow-kind';flowSelect.setAttribute('aria-label','Percorso luminoso');flowSelect.hidden=true;flowToggle.after(flowSelect);viewer?.flows.renderLegend();
 
 
 
@@ -249,7 +250,7 @@ document.addEventListener('input',e=>{if(e.target.id==='inside-opacity'&&viewer)
 
 
 
-$('#canvas-host').addEventListener('part-hover',renderInsideCaption);
+
 
 
 
@@ -271,7 +272,7 @@ $('#dialog').addEventListener('close',()=>$('#scan-host')?.scanDispose?.());
 
 const viewerComponents=document.createElement('section');viewerComponents.className='viewer-components';viewerComponents.setAttribute('aria-label','Esplora componenti');viewerComponents.innerHTML=`<div class="viewer-components-heading">${icon('list-tree')}<span>Componenti</span><b id="viewer-part-count"></b></div><div class="viewer-component-list" aria-label="Componenti del propulsore"></div>`;$('.viewer').append(viewerComponents);
 
-const viewerSheet=document.createElement('aside');viewerSheet.className='viewer-technical-card';viewerSheet.hidden=true;viewerSheet.setAttribute('aria-label','Scheda tecnica nel viewer');$('.viewer').append(viewerSheet);
+const viewerSheet=document.createElement('aside');viewerSheet.className='viewer-technical-card';viewerSheet.id='viewer-component-info';viewerSheet.hidden=true;viewerSheet.setAttribute('aria-label','Scheda tecnica nel viewer');$('.viewer').append(viewerSheet);
 
 const motionReadout=document.createElement('div');motionReadout.id='motion-readout';motionReadout.className='drivetrain-readout';$('.cycle-panel').append(motionReadout);
 
@@ -279,11 +280,11 @@ const disconnect=document.createElement('small');disconnect.id='transmission-sta
 
 actions['technical-plate']=()=>{modal(components[state.selected].name,technicalFigure(state.selected,{large:true})+`<p class="technical-principle">${components[state.selected].relationship}</p>`,'TAVOLA TECNICA · STRUTTURA E FUNZIONE');$('#dialog').classList.add('technical-dialog');};
 
-actions['close-viewer-sheet']=()=>{$('.viewer-technical-card').hidden=true;};
+actions['close-viewer-sheet']=closeComponentInfo;
 
 actions['focus-selected']=()=>viewer?.select(state.selected,true);
 
-document.addEventListener('fullscreenchange',()=>{if(document.fullscreenElement){$('.viewer').append($('#dialog'));renderViewerSheet(!state.car);}else{document.body.append($('#dialog'));$('.viewer-technical-card').hidden=true;}refreshIcons();});
+document.addEventListener('fullscreenchange',()=>{if(document.fullscreenElement){$('.viewer').append($('#dialog'));renderViewerSheet();}else{document.body.append($('#dialog'));renderViewerSheet();}refreshIcons();});
 
 renderSystems();updateMetrics();refreshIcons();
 
