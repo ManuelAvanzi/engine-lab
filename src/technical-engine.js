@@ -2,10 +2,10 @@ import * as THREE from 'three';
 import {gearGeometry,castRim} from './geometry-detail.js';
 const xs=[-1.38,-.46,.46,1.38];
 const alloy='#9da8ad',steel='#778992',dark='#34454d';
-function plate(w,d,h,holes=[]){const s=new THREE.Shape();s.moveTo(-w/2,-d/2);s.lineTo(w/2,-d/2);s.lineTo(w/2,d/2);s.lineTo(-w/2,d/2);s.closePath();for(const [x,z,r]of holes){const p=new THREE.Path();p.absarc(x,z,r,0,Math.PI*2,true);s.holes.push(p);}const g=new THREE.ExtrudeGeometry(s,{depth:h,bevelEnabled:true,bevelSize:.008,bevelThickness:.008,bevelSegments:2,curveSegments:24});g.rotateX(-Math.PI/2);return g;}
-function clearPart(v,p){const old=new Set();p.traverse(o=>{if(o.isMesh){old.add(o);o.geometry.dispose();o.material.dispose();}});v.meshes=v.meshes.filter(m=>!old.has(m));p.clear();}
+export function plate(w,d,h,holes=[]){const s=new THREE.Shape();s.moveTo(-w/2,-d/2);s.lineTo(w/2,-d/2);s.lineTo(w/2,d/2);s.lineTo(-w/2,d/2);s.closePath();for(const [x,z,r]of holes){const p=new THREE.Path();p.absarc(x,z,r,0,Math.PI*2,true);s.holes.push(p);}const g=new THREE.ExtrudeGeometry(s,{depth:h,bevelEnabled:true,bevelSize:.008,bevelThickness:.008,bevelSegments:2,curveSegments:24});g.rotateX(-Math.PI/2);return g;}
+export function clearPart(v,p){const old=new Set();p.traverse(o=>{if(o.isMesh){old.add(o);o.geometry.dispose();o.material.dispose();}});v.meshes=v.meshes.filter(m=>!old.has(m));p.clear();}
 export function refineTechnicalEngine(v){
- if(v.type!=='ice')return;
+ if(v.type==='ev')return;
  const bolt=(g,p,axis='y',r=.045)=>{const m=v.mesh(g,new THREE.CylinderGeometry(r,r,.045,6),steel,p);if(axis==='z')m.rotation.x=Math.PI/2;if(axis==='x')m.rotation.z=Math.PI/2;return m;};
  const shell=m=>{m.userData.shell=true;return m;};
  const block=v.parts.block;clearPart(v,block);

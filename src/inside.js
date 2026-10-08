@@ -42,6 +42,7 @@ export function addInsideDetails(v){
   if(id==='block')for(const x of [-1.38,-.46,.46,1.38]){ring(.405,.027,[x,1.2,0],cyan,'y');tube([[x,1.2,.405],[x,1.6,.405]],.027);}
   if(id==='crank'){g.removeFromParent();v.crankRotor.add(g);tube([[-2,.43,0],[0,.43,0],[1.7,.43,0]],.03);}
   if(id==='intake'||id==='exhaust')for(const x of [-1.38,-.46,.46,1.38]){if(id==='intake')tube([[x,2.17,-.65],[x,2.23,-.95],[x,1.84,-1.19],[x,1.58,-1.18]],.025);else tube([[x,2.02,.65],[x,1.91,.98],[x*.63,1.3,1.21],[x*.35,1.03,1.27]],.025,amber);}
+  if(p.userData.modeledInternals)continue;
   if(id==='inverter'){const ev=v.type==='ev',x=ev?0:2.7,y=ev?2.55:1.95;for(const d of [-.3,0,.3])box([.19,.12,.42],[x+d,y,0],amber);for(const z of [-.36,.36])add(new THREE.CylinderGeometry(.085,.085,.16,20),[x-.36,y,z],cyan);box([ev?2.05:1,.025,.94],[x,y-.12,0]);}
   if(id==='battery'){const ev=v.type==='ev',x=ev?0:.1,y=ev?.01:.35,z=ev?-1.95:-2.4;for(let a=-1.3;a<=1.3;a+=.38)for(const b of [-.29,.29])box([.28,.23,.43],[x+a,y,z+b],amber);box([ev?3.5:2.8,.025,.9],[x,y-.15,z],cyan);}
   if(id==='housing')for(const x of [-.8,-.4,0,.4,.8])ring(.94,.025,[x,1.17,0]);
@@ -57,7 +58,7 @@ export function applyInside(v){
  for(const [key,p] of Object.entries(v.parts))if(p.insideGroup)p.insideGroup.visible=active&&key===id;
  for(const m of v.meshes){if(!active||m.userData.part!==id)continue;
   const t=m.geometry.type;
-  const keep=(['pistons','rods','timing'].includes(id)&&t==='TorusGeometry')||(id==='pistons'&&t==='CylinderGeometry'&&m.geometry.parameters.radiusTop<.1)||(id==='head'&&!m.userData.shell)||(id==='bearings'&&t==='SphereGeometry')||(id==='rotor'&&t!=='CylinderGeometry')||(id==='stator'&&t==='RoundedBoxGeometry'&&m.geometry.parameters.width<.1);
+  const keep=m.userData.internal||(['pistons','rods','timing'].includes(id)&&t==='TorusGeometry')||(id==='pistons'&&t==='CylinderGeometry'&&m.geometry.parameters.radiusTop<.1)||(id==='head'&&!m.userData.shell)||(id==='bearings'&&t==='SphereGeometry')||(id==='rotor'&&t!=='CylinderGeometry')||(id==='stator'&&t==='RoundedBoxGeometry'&&m.geometry.parameters.width<.1);
   m.material.needsUpdate=true;m.material.transparent=!keep;m.material.opacity=keep?1:v.insideOpacity;m.material.depthWrite=keep;m.visible=true;
  }
 }

@@ -19,7 +19,7 @@ export class Presentation {
   if(this.reduced){v.camera.position.copy(position);v.controls.target.copy(target);v.controls.update();return;}
   this.tween={position,target,from:v.camera.position.clone(),look:v.controls.target.clone(),elapsed:0};v.controls.enableDamping=false;
  }
- setFocused(value){this.focused=value;this.v.host.dataset.framing=value?'component':'overview';this.v.car.traverse(o=>{const m=o.material;if(!m?.userData.role)return;const role=m.userData.role;if(role==='body'||role==='glass')m.opacity=m.userData.overviewOpacity*(value?.32:1);else if(role==='wheel'||role==='tire')o.visible=!value;});}
+ setFocused(value){this.focused=value;this.v.host.dataset.framing=value?'component':'overview';this.v.car.traverse(o=>{const m=o.material;if(!m?.userData.role)return;const role=m.userData.role;if(role==='body'||role==='glass')m.opacity=m.userData.overviewOpacity*(value?.32:1);else if(role==='wheel'||role==='tire')o.visible=true;});this.v.paint();}
  focus(){
   const v=this.v,p=v.parts[v.selected];if(!p||v.xrSession)return;
   v.root.updateMatrixWorld(true);const bounds=new THREE.Box3().setFromObject(p);if(bounds.isEmpty())return;
@@ -32,14 +32,18 @@ export class Presentation {
   const v=this.v,target=bounds.getCenter(new THREE.Vector3()),fov=THREE.MathUtils.degToRad(v.camera.fov);
   const direction=v.camera.position.clone().sub(v.controls.target).normalize();if(!direction.lengthSq())direction.set(1,.6,1).normalize();
   const right=new THREE.Vector3().crossVectors(v.camera.up,direction).normalize(),up=new THREE.Vector3().crossVectors(direction,right).normalize();
-  const tanV=Math.tan(fov/2),tanH=tanV*v.camera.aspect;let distance=3.5;
+  const tanV=Math.tan(fov/2),tanH=tanV*v.camera.aspect;
+  const panel=v.host.parentElement.querySelector('.viewer-technical-card'),rect=panel?.getBoundingClientRect(),hostRect=v.host.getBoundingClientRect();
+  const occluded=panel&&!panel.hidden&&rect.width?Math.min(hostRect.width*.48,hostRect.right-rect.left+20):0;
+  const usableH=Math.max(.55,(hostRect.height-215)/hostRect.height),usableW=1-occluded/hostRect.width;
+  let distance=1.1;
   // Fit the projected box, rather than its enclosing sphere, so long engines
   // do not become unnecessarily small on wide screens.
   for(const x of [bounds.min.x,bounds.max.x])for(const y of [bounds.min.y,bounds.max.y])for(const z of [bounds.min.z,bounds.max.z]){
    const delta=new THREE.Vector3(x,y,z).sub(target),depth=delta.dot(direction);
-   distance=Math.max(distance,Math.abs(delta.dot(right))/tanH+depth,Math.abs(delta.dot(up))/tanV+depth);
+   distance=Math.max(distance,Math.abs(delta.dot(right))/(tanH*usableW)+depth,Math.abs(delta.dot(up))/(tanV*usableH)+depth);
   }
-  distance*=padding;
+  distance*=padding;target.addScaledVector(right,distance*tanH*(occluded/hostRect.width));
   this.move(target.clone().addScaledVector(direction,distance),target);
  }
  frameExplosion(){

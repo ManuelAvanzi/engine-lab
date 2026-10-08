@@ -91,3 +91,16 @@ Il cursore 0-100 km/h sostituisce i moltiplicatori di riproduzione, anche a sche
 Il motore a benzina usa basamento con deck forato, canne cave, guarnizione e sedi valvole, due alberi a camme, otto valvole con molle elicoidali, bielle forate con cappelli e rail di iniezione indiretta. La distribuzione usa rapporto 2:1; geometrie e quote restano illustrative, non un CAD OEM certificato. Il modello ibrido ed elettrico non sono oggetto di questa revisione.
 Una vista separata Motore reale 3D presenta la scansione statica Four-cylinder engine di Artec 3D, CC BY 4.0, con attribuzione visibile. Non promette animazione o separazione dei pezzi della scansione. Sorgente: https://www.artec3d.com/3d-models/four-cylinder-engine . Rigenerazione: estrarre il PLY in assets/technical e lanciare node scripts/prepare-engine-scan.mjs. Circa 10 milioni di triangoli originali ridotti con errore controllato e compressi a circa 2,4 MB. Il visualizzatore viene caricato su richiesta e rilascia le risorse alla chiusura.
 Riferimento funzionale iniezione indiretta: https://www.bosch-mobility.com/en/solutions/valves/fuel-injector-manifold/ . Nessuna geometria Bosch copiata.
+
+
+## Revisione tecnica completa — 8 ottobre 2026
+
+- 10 componenti termici, 14 ibridi e 8 elettrici, con selezione e inquadratura; 20 tavole vettoriali originali condivise dove il componente è lo stesso.
+- Selettore componenti e scheda illustrata disponibili anche nel viewer fullscreen e su tablet. Il focus passa alla vista del propulsore e attenua il contesto.
+- Ibrido: testata, basamento, bielle e distribuzione della revisione tecnica; motogeneratore coassiale, inverter aperto, moduli/celle batteria e trasmissione 2 × 3.
+- Elettrico: carter cavo, lamierini, cave/avvolgimenti, magneti, albero scanalato, piste/sfere/gabbie, elettronica e riduttore 3 × 3.
+- Ruote concept raddrizzate con pneumatico e cerchio nello stesso gruppo, pinze fisse. Bake delle trasformazioni speculari con correzione del winding. Tesla: superfici blur sostituite da ruote parametriche chiuse, mantenendo i centri degli assi.
+- Cinematica: velocità iniziale 0, limite 100 km/h, diametro didattico 0,65 m; rapporti totali termico 5, ibrido 6, EV 9. Tutti i movimenti usano la stessa scala temporale 3%. Pausa e zero fermano i movimenti; smontaggio interrompe il collegamento alle ruote. Il regime è uno schema cinematico senza minimo, frizione o cambi marcia.
+- Verifica: 13 test automatici; 32 selezioni di componenti verificate nel browser, caricamento delle tavole, messa a fuoco, desktop, fullscreen e viewport tablet 820 × 1180. Nessun test su un dispositivo Quest fisico.
+
+Le tavole sono SVG accessibili originali. Riferimenti funzionali: https://www.bosch-mobility.com/en/solutions/electric-motors/ e https://afdc.energy.gov/vehicles/electric. Nessuna pretesa di fedeltà dimensionale OEM.

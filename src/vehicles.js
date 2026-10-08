@@ -1,3 +1,5 @@
+import {createDetailedWheel} from './wheels.js';
+import {bakeGeometry} from './vehicle-geometry.js';
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {MeshoptDecoder} from 'three/addons/libs/meshopt_decoder.module.js';
@@ -12,7 +14,7 @@ export const vehicleInfo={
 
 function finishMaterial(original,role){
  const tire=role==='tire',wheel=role==='wheel',glass=role==='glass';
- const m=new THREE.MeshStandardMaterial({color:tire?'#252a30':wheel?'#72818f':glass?'#8caebe':'#7da6bd',metalness:wheel?.25:0,roughness:tire?.95:wheel?.72:.86,transparent:!tire&&!wheel,opacity:tire||wheel?1:glass?.07:.1,depthWrite:tire||wheel,side:THREE.FrontSide});
+ const m=new THREE.MeshStandardMaterial({color:tire?'#252a30':wheel?'#72818f':glass?'#8caebe':'#7da6bd',metalness:wheel?.25:0,roughness:tire?.95:wheel?.72:.86,transparent:!tire&&!wheel,opacity:tire||wheel?1:glass?.07:.1,depthWrite:tire||wheel,side:tire||wheel?THREE.DoubleSide:THREE.FrontSide});
  if(tire){m.normalMap=original.normalMap;m.normalScale.copy(original.normalScale||new THREE.Vector2(1,1));}
  m.envMapIntensity=.12;
  m.userData.role=role;m.userData.overviewOpacity=m.opacity;
@@ -24,7 +26,7 @@ function finishMaterial(original,role){
  return m;
 }
 
-function prepareTesla(source){
+export function prepareTesla(source){
  source.updateMatrixWorld(true);
  const bounds=new THREE.Box3().setFromObject(source),center=bounds.getCenter(new THREE.Vector3());
  const unit=12/4.72,scale=12/(bounds.max.x-bounds.min.x);
@@ -34,16 +36,7 @@ function prepareTesla(source){
  source.traverse(o=>{
   if(!o.isMesh)return;
   const original=o.material,name=original.name;
-  const geometry=o.geometry.clone();
-  // Quantized attributes must become floating-point before baking world
-  // transforms; writing world coordinates back to normalized integers clips them.
-  for(const name of ['position','normal','tangent']){
-   const attr=geometry.getAttribute(name);if(!attr)continue;
-   const values=new Float32Array(attr.count*attr.itemSize);
-   for(let i=0;i<attr.count;i++)for(let k=0;k<attr.itemSize;k++)values[i*attr.itemSize+k]=attr.getComponent(i,k);
-   geometry.setAttribute(name,new THREE.BufferAttribute(values,attr.itemSize));
-  }
-  geometry.applyMatrix4(new THREE.Matrix4().multiplyMatrices(transform,o.matrixWorld));
+  const geometry=bakeGeometry(o.geometry,new THREE.Matrix4().multiplyMatrices(transform,o.matrixWorld));
   const pos=geometry.attributes.position,index=geometry.index,buckets=new Map();
   for(let i=0;i<(index?.count??pos.count);i+=3){
    const ids=[0,1,2].map(k=>index?index.getX(i+k):i+k);
@@ -62,10 +55,13 @@ function prepareTesla(source){
   }
   geometry.dispose();
  });
- car.userData.wheels=wheels;car.position.y=-.34;return car;
+ for(const w of wheels){
+  w.traverse(m=>{if(m.isMesh){m.geometry.dispose();m.material.dispose();}});w.clear();w.add(createDetailedWheel());
+ }
+ car.userData.wheels=wheels;car.updateMatrixWorld(true);const floor=Math.min(...wheels.map(w=>new THREE.Box3().setFromObject(w).min.y));car.position.y=-.35-floor;return car;
 }
 
-function prepareFerrari(source){
+export function prepareFerrari(source){
  source.updateMatrixWorld(true);
  const bounds=new THREE.Box3().setFromObject(source),center=bounds.getCenter(new THREE.Vector3());
  const scale=12/(bounds.max.z-bounds.min.z);
@@ -83,50 +79,43 @@ function prepareFerrari(source){
   // Brake calipers remain fixed; tires and rims turn around their own centre.
   const spinning=wheel&&!/^brake/.test(o.name),target=spinning?wheel:body;
   const role=wheel?(/tire/i.test(o.name)?'tire':'wheel'):/glass/i.test(o.name)?'glass':'body';
-  const geometry=o.geometry.clone();
-  for(const name of ['position','normal','tangent']){
-   const attr=geometry.getAttribute(name);if(!attr)continue;
-   const values=new Float32Array(attr.count*attr.itemSize);
-   for(let i=0;i<attr.count;i++)for(let k=0;k<attr.itemSize;k++)values[i*attr.itemSize+k]=attr.getComponent(i,k);
-   geometry.setAttribute(name,new THREE.BufferAttribute(values,attr.itemSize));
-  }
-  geometry.applyMatrix4(new THREE.Matrix4().multiplyMatrices(transform,o.matrixWorld));
+  const geometry=bakeGeometry(o.geometry,new THREE.Matrix4().multiplyMatrices(transform,o.matrixWorld));
   if(spinning)geometry.translate(-wheel.position.x,-wheel.position.y,-wheel.position.z);
   geometry.computeBoundingBox();geometry.computeBoundingSphere();
   const material=finishMaterial(o.material,role);
   if(role==='body'){material.color.set('#bc9790');material.opacity=.18;material.userData.overviewOpacity=.18;}
   const mesh=new THREE.Mesh(geometry,material);mesh.name=o.name;mesh.castShadow=!!wheel;target.add(mesh);
  });
- car.userData.wheels=wheels;car.position.y=-.34;return car;
+ car.userData.wheels=wheels;car.updateMatrixWorld(true);const floor=Math.min(...wheels.map(w=>new THREE.Box3().setFromObject(w).min.y));car.position.y=-.35-floor;return car;
 }
 
-function prepareConcept(source){
+export function prepareConcept(source){
  source.updateMatrixWorld(true);
- const bounds=new THREE.Box3().setFromObject(source),size=bounds.getSize(new THREE.Vector3());
- const car=new THREE.Group();car.add(source);
- // Normalize the authored car to the same teaching envelope as the sedan.
- if(size.x>size.z)source.rotation.y=Math.PI/2;
- car.updateMatrixWorld(true);const box=new THREE.Box3().setFromObject(car),s=12/Math.max(size.x,size.z),c=box.getCenter(new THREE.Vector3());
- source.position.set(-c.x,-box.min.y,-c.z);car.scale.setScalar(s);car.position.y=-.34;
- const wheels=[],wheelRoots=[];
- source.traverse(o=>{if(/^Wheel(Front|Rear)[LR]$/.test(o.name))wheelRoots.push(o);});
- for(const wheelRoot of wheelRoots){
-  // The source has a proper axle pivot. Rotate tire, rim and disc together;
-  // the brake caliper stays attached to the suspension.
-  const spinning=new THREE.Group();spinning.name=wheelRoot.name+'Spin';
-  for(const child of [...wheelRoot.children])if(!/BrakePad/.test(child.name))spinning.add(child);
-  wheelRoot.add(spinning);wheels.push(spinning);
- }
+ const bounds=new THREE.Box3().setFromObject(source),size=bounds.getSize(new THREE.Vector3()),center=bounds.getCenter(new THREE.Vector3());
+ const scale=12/Math.max(size.x,size.z),turn=size.x>size.z?Math.PI/2:0;
+ const transform=new THREE.Matrix4().makeRotationY(turn).multiply(new THREE.Matrix4().makeScale(scale,scale,scale)).multiply(new THREE.Matrix4().makeTranslation(-center.x,-bounds.min.y,-center.z));
+ const car=new THREE.Group(),body=new THREE.Group(),wheels=[],pivots=new Map();car.add(body);
+ source.traverse(o=>{if(/^Wheel(Front|Rear)[LR]$/.test(o.name)){
+  const group=new THREE.Group();group.name=o.name+'Spin';
+  group.position.copy(o.getWorldPosition(new THREE.Vector3()).applyMatrix4(transform));car.add(group);wheels.push(group);
+  const world=new THREE.Matrix4().multiplyMatrices(transform,o.matrixWorld),axis=new THREE.Vector3(1,0,0).transformDirection(world);
+  const straight=new THREE.Quaternion().setFromUnitVectors(axis,new THREE.Vector3(axis.x<0?-1:1,0,0));
+  const correction=new THREE.Matrix4().makeTranslation(...group.position.toArray()).multiply(new THREE.Matrix4().makeRotationFromQuaternion(straight)).multiply(new THREE.Matrix4().makeTranslation(...group.position.clone().negate().toArray()));
+  pivots.set(o,{group,correction});
+ }});
  source.traverse(o=>{if(!o.isMesh)return;
-  const name=o.name,original=o.material;
-  const materialName=original.name||'';
-  const wheel=/^Wheel|Axle/i.test(name)||/Tire|Rim|Disc|Brake/.test(materialName);
+  let a=o,wheel;while(a){if(pivots.has(a)){wheel=pivots.get(a);break;}a=a.parent;}
+  const name=o.name,original=o.material,materialName=original.name||'';
   const role=wheel?(/Tire/i.test(materialName)?'tire':'wheel'):/Glass|Window/i.test(name+' '+materialName)?'glass':/Interior|Floor|Dashboard|Underside/i.test(name)?'interior':'body';
-  if(role==='interior'||name==='Engine'||/License|Emblem/i.test(name)){o.visible=false;return;}
-  o.material=finishMaterial(original,role);o.castShadow=wheel;
+  if(role==='interior'||name==='Engine'||/License|Emblem/i.test(name))return;
+  let matrix=new THREE.Matrix4().multiplyMatrices(transform,o.matrixWorld);
+  if(wheel)matrix.premultiply(wheel.correction);
+  const geometry=bakeGeometry(o.geometry,matrix),spinning=wheel&&!/BrakePad/.test(name);
+  if(spinning)geometry.translate(-wheel.group.position.x,-wheel.group.position.y,-wheel.group.position.z);
+  const mesh=new THREE.Mesh(geometry,finishMaterial(original,role));mesh.name=name;mesh.castShadow=!!wheel;
+  (spinning?wheel.group:body).add(mesh);
  });
- car.userData.wheels=wheels;
- return car;
+ car.userData.wheels=wheels;car.updateMatrixWorld(true);const floor=Math.min(...wheels.map(w=>new THREE.Box3().setFromObject(w).min.y));car.position.y=-.35-floor;return car;
 }
 
 export async function loadVehicle(type){

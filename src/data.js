@@ -1,6 +1,6 @@
 export const systems = {
   ice: { name: 'Motore a benzina', short: 'Termico', tag: 'COMBUSTIONE INTERNA', subtitle: '4 cilindri in linea · ciclo Otto · 2,0 L', icon: 'fuel', color: '#678b89', nominal: 110, maxRpm: 6500, components: ['cover','head','pistons','rods','crank','block','intake','exhaust','timing','sump'] },
-  hybrid: { name: 'Sistema full hybrid', short: 'Ibrido', tag: 'DUE FONTI, UN SISTEMA', subtitle: 'Architettura parallela · termico + elettrico', icon: 'combine', color: '#8eac60', nominal: 130, maxRpm: 6000, components: ['head','pistons','rods','crank','block','sump','motor','inverter','battery','transmission'] },
+  hybrid: { name: 'Sistema full hybrid', short: 'Ibrido', tag: 'DUE FONTI, UN SISTEMA', subtitle: 'Architettura parallela · termico + elettrico', icon: 'combine', color: '#8eac60', nominal: 130, maxRpm: 6000, components: ['cover','head','pistons','rods','crank','block','intake','exhaust','timing','sump','motor','inverter','battery','transmission'] },
   ev: { name: 'Motore elettrico', short: 'Elettrico', tag: 'TRAZIONE ELETTRICA', subtitle: 'Sincrono a magneti permanenti · batteria 400 V', icon: 'zap', color: '#8098c9', nominal: 150, maxRpm: 14000, components: ['housing','stator','rotor','shaft','bearings','inverter','battery','reducer'] }
 };
 export const components = {
