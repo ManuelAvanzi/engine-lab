@@ -12,6 +12,10 @@ npm run dev
 
 Aprire http://127.0.0.1:4173. Dopo una modifica ai sorgenti eseguire nuovamente `npm run build` e ricaricare la pagina. Il server locale legge gli asset compilati in `dist` e usa `src/worker.js` per le API. `npm test` esegue i controlli su bilancio energetico, scenario di guasto, validazione del tutor e routing.
 
+## Schede componenti · aggiornamento 8 ottobre 2026
+
+Rimosse le tavole illustrate dalle schede laterali, dalle informazioni aperte con ⓘ e dagli approfondimenti. Restano descrizioni, relazioni, criticità e comandi per esplorare il modello 3D. Non sono più disponibili pulsanti per ingrandire gli schemi. I riferimenti alle tavole nelle note storiche sotto descrivono versioni precedenti.
+
 ## Funzioni
 
 - Modelli procedurali distinti: benzina quattro cilindri, ibrido parallelo ed elettrico sincrono a magneti permanenti.
@@ -68,7 +72,7 @@ Per rigenerare: scaricare `tesla-source.glb` da https://raw.githubusercontent.co
 
 La carrozzeria usa trasparenza graduata sui contorni e nasconde gli interni. La selezione di una parte avvicina la camera con una transizione interrompibile ruotando il modello; `Vista generale` ripristina il contesto completo. Nei dettagli le ruote vengono nascoste per non coprire il propulsore. I movimenti rispettano la preferenza di riduzione delle animazioni.
 
-La vista esplosa usa direzioni coerenti per gli assiemi e guide tratteggiate verso le sedi originali. Le scritte sopra il modello sono nascoste: ogni riga delle liste componenti ha un pulsante ⓘ che apre e richiude una sola scheda con testo e schema tecnico espandibile. Il passaggio del mouse conserva la trasparenza senza aprire testi. L’etichetta del componente compare soltanto se la sua scheda è stata richiesta. Le annotazioni seguono la posizione dell’assieme ma ignorano le oscillazioni dei pezzi interni e non fanno parte delle esportazioni.
+La vista esplosa usa direzioni coerenti per gli assiemi e guide tratteggiate verso le sedi originali. Le scritte sopra il modello sono nascoste: ogni riga delle liste componenti ha un pulsante ⓘ che apre e richiude una sola scheda testuale compatta. Il passaggio del mouse conserva la trasparenza senza aprire testi. L’etichetta del componente compare soltanto se la sua scheda è stata richiesta. Le annotazioni seguono la posizione dell’assieme ma ignorano le oscillazioni dei pezzi interni e non fanno parte delle esportazioni.
 
 ## Percorsi guidati e rapporto di trasmissione
 
