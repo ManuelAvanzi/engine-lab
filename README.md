@@ -1,5 +1,7 @@
 # engineLab
 
+Per iniziare a collaborare: [accesso, installazione e verifiche](CONTRIBUTING.md).
+
 Laboratorio didattico 3D in italiano per istituti tecnici e professionali. Realizzato con JavaScript, Three.js e un server compatibile con Cloudflare Workers.
 
 ## Avvio locale
