@@ -1,3 +1,5 @@
+> **Stato attuale (13 ottobre 2026):** integrazione Supabase rimossa. Il laboratorio usa la persistenza locale; accesso e archivio online del prototipo sono disattivati. Vedi [Persistenza](docs/PERSISTENZA.md). Le descrizioni storiche del backend più sotto non descrivono la versione attuale.
+
 # engineLab
 
 Per iniziare a collaborare: [accesso, installazione e verifiche](CONTRIBUTING.md).

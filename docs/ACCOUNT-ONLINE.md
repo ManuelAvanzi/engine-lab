@@ -1,3 +1,5 @@
+> DOCUMENTO STORICO: il servizio descritto è stato disattivato nel frontend. Vedere [Persistenza](PERSISTENZA.md).
+
 # Area personale engineLab
 
 L’accesso usa lo stesso progetto Supabase di exhibitionLab e Warehouse Lab. L’alias `redazione` viene risolto nell’account esistente; la password viene verificata da Supabase Auth e non è inclusa nei sorgenti. Ogni laboratorio ha una chiave di sessione distinta.
